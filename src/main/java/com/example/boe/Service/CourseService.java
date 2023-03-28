@@ -15,4 +15,5 @@ public interface CourseService {
 
     ResponseData update(CourseDto courseDto);
 
+    ResponseData getSessionList(int id);
 }

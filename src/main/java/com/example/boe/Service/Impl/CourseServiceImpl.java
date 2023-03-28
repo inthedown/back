@@ -1,16 +1,23 @@
 package com.example.boe.Service.Impl;
 
+import com.example.boe.Entity.Classes;
 import com.example.boe.Entity.Course;
 import com.example.boe.Entity.File;
 import com.example.boe.Entity.Session;
 import com.example.boe.Form.CourseDto;
 import com.example.boe.Form.SessionDto;
 import com.example.boe.Form.UserInfoDto;
+import com.example.boe.Repository.ClassesRepository;
 import com.example.boe.Repository.CourseRepository;
 import com.example.boe.Repository.FileRepository;
+import com.example.boe.Repository.SessionRepository;
 import com.example.boe.Service.CourseService;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
+import com.example.boe.result.ServiceException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -19,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManagerFactory;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,6 +39,12 @@ public class CourseServiceImpl implements CourseService {
 
     @Autowired
     private FileRepository fileRepository;
+
+    @Autowired
+    private SessionRepository sessionRepository;
+
+    @Autowired
+    private ClassesRepository classesRepository;
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
@@ -56,89 +71,106 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseData getDetail(int id) {
-//        Course course = courseRepository.findByIdWithSessions(id);
-//        if(course==null){
-//            return new ResponseData(ExceptionMsg.FAILED,"课程不存在");
-//        }
-//        return new ResponseData(ExceptionMsg.SUCCESS, JSON.toJSONString(course, SerializerFeature.DisableCircularReferenceDetect));
-       Course c= getCourseWithAllChildObjects(id);
-       log.info("course:{}",c);
+
+       Course c= courseRepository.findById(id).get();
         return new ResponseData(ExceptionMsg.SUCCESS, c);
-    }
-//    public Course getCourseWithAllChildObjects(int courseId) {
-//        EntityManager entityManager = entityManagerFactory.createEntityManager();
-//        try {
-//            // 使用JOIN FETCH语句同时获取所有相关对象
-//            TypedQuery<Course> query = entityManager.createQuery(
-//                    "select c from Course c left join fetch c.sessions s left join fetch s.files where c.id = :id",
-//                    Course.class);
-//            query.setParameter("id", courseId);
-//            return query.getSingleResult();
-//        } finally {
-//            entityManager.close();
-//        }
-//    }
-    public Course getCourseWithAllChildObjects(int courseId) {
 
-        List<Course> courses = jdbcTemplate.query("SELECT c.*, s.*, f.* FROM course c " +
-                        "LEFT JOIN session s ON s.course_id = c.id " +
-                        "LEFT JOIN file f ON f.session_id = s.id " +
-                        "WHERE c.id = "+courseId,
-                new BeanPropertyRowMapper<>(Course.class));
-
-        if (courses.isEmpty()) {
-            return null;
-        }
-        log.info("id:{}",courseId);
-        Map<Integer, Session> sessionMap = new HashMap<>();
-        Map<Integer, File> fileMap = new HashMap<>();
-        Course course = courses.get(0);
-        log.info("course:{}",course==null);
-        course.setSessions(new ArrayList<>());
-        for (Course c : courses) {
-            log.info("a:{}",c.getSessions().get(0).getId());
-            Session session = sessionMap.get(c.getSessions().get(0).getId());
-            if (session == null) {
-                session = c.getSessions().get(0);
-                session.setFiles(new ArrayList<>());
-                sessionMap.put(session.getId(), session);
-                course.getSessions().add(session);
-            }
-            File file = c.getSessions().get(0).getFiles().get(0);
-            log.info("b:{}",file.getId());
-            if (file != null &&  Objects.requireNonNull(file.getId())!=null && !fileMap.containsKey(file.getId())) {
-                file.setSession(session);
-                session.getFiles().add(file);
-                fileMap.put(file.getId(), file);
-            }
-        }
-        return course;
     }
+
 
     @Override
     @Transactional
     public ResponseData add(CourseDto courseDto) {
+
         Course course = convertToCourse(courseDto);
         courseRepository.save(course);
-        return new ResponseData(ExceptionMsg.SUCCESS);
+        //把file与session关联
+        associateFileWithSession(course,courseDto.getData());
+        return new ResponseData(ExceptionMsg.SUCCESS,"添加成功");
     }
+
+    private Timestamp[] calculateTime(List<Session> sessions){
+        //定义数组存放开始时间和结束时间
+        List<Timestamp> times = new ArrayList<>();
+        sessions.forEach(session -> {
+            times.add(session.getStartTime());
+            times.add(session.getEndTime());
+            if(session.getChildSessions().size()>0){
+                calculateTime(session.getChildSessions());
+            }
+        });
+        if (times.isEmpty()) {
+            // handle case where there are no sessions
+            return new Timestamp[]{null, null};
+        }
+        Timestamp startTime = Collections.min(times);
+        Timestamp endTime = Collections.max(times);
+        return new Timestamp[]{startTime,endTime};
+    }
+    public List<Timestamp> getAllTimes(Session session) {
+        List<Timestamp> times = new ArrayList<>();
+        times.add(session.getStartTime());
+        times.add(session.getEndTime());
+        for(Session childSession : session.getChildSessions()) {
+            times.addAll(getAllTimes(childSession));
+        }
+        return times;
+    }
+
+
+
+
+
     private Course convertToCourse(CourseDto courseDto) {
         Course course = new Course();
         course.setCourseName(courseDto.getName());
         course.setTeacherId(courseDto.getTeacherId());
 
+            Classes classes = Optional.ofNullable(classesRepository.findByClassName(courseDto.getClasses()))
+                    .orElseThrow(() ->new ServiceException("班级不存在"));
+            course.setClasses(classes);
+
         Session session = convertToSession(courseDto.getData());
         session.setCourse(course);
         course.setSessions(Collections.singletonList(session));
-
+        List<Timestamp>times=getAllTimes(session);
+        log.info("times{}",times.size());
+        course.setStartTime(Collections.min(times));
+        course.setEndTime(Collections.max(times));
         return course;
     }
+    private void associateFileWithSession(Course course,SessionDto sessionDto) {
+        log.info("course:{}",course.getSessions().size());
+        course.getSessions().forEach(session -> {
+            List<File> files = Optional.ofNullable(sessionDto.getFileList())
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(fileDto -> {
+                        log.info("file:{}",fileDto.getUid());
+                        File aFile = fileRepository.findFileByUid(fileDto.getUid());
+                        if (aFile != null) {
+                            aFile.setSession(session);
+                            return aFile;
+                        } else {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        });
 
+    }
     private Session convertToSession(SessionDto sessionDto) {
         Session session = new Session();
         session.setSessionName(sessionDto.getName());
-        session.setStartTime(sessionDto.getStartTime());
-        session.setEndTime(sessionDto.getEndTime());
+        if(sessionDto.getDate().length>0){
+            session.setStartTime(sessionDto.getStartTime());
+            session.setEndTime(sessionDto.getEndTime());
+        }else{
+            session.setStartTime(null);
+            session.setEndTime(null);
+        }
+
 
         List<File> files = Optional.ofNullable(sessionDto.getFileList())
                 .orElse(Collections.emptyList())
@@ -146,12 +178,12 @@ public class CourseServiceImpl implements CourseService {
                 .map(fileDto -> {
                     File aFile = fileRepository.findFileByUid(fileDto.getUid());
                     if (aFile != null) {
-                        aFile.setSession(session);
                         return aFile;
-                    }else{
-                     return null;
+                    } else {
+                        return null;
                     }
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         session.setFiles(files);
 
@@ -171,11 +203,18 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseData delete(int id) {
-        return null;
+        courseRepository.deleteById(id);
+        return new ResponseData(ExceptionMsg.SUCCESS, "删除成功");
     }
 
     @Override
     public ResponseData update(CourseDto courseDto) {
         return null;
+    }
+
+    @Override
+    public ResponseData getSessionList(int id) {
+        Session session = courseRepository.findSessionsByCourseId(id);
+        return new ResponseData(ExceptionMsg.SUCCESS, session);
     }
 }

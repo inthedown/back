@@ -31,6 +31,18 @@ public class Student {
     @Column(name = "grade")
     private String grade;
 
+    @ManyToOne
+    @JoinColumn(name = "classes_id")
+    private Classes classes;
+
+    public Classes getClasses() {
+        return classes;
+    }
+
+    public void setClasses(Classes classes) {
+        this.classes = classes;
+    }
+
     public Student(String accountName, String password, String email, String grade, String name) {
         this.accountName = accountName;
         this.password = password;

@@ -1,6 +1,7 @@
 package com.example.boe.Repository;
 
 import com.example.boe.Entity.Course;
+import com.example.boe.Entity.Session;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,5 +19,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 //    @Query(value = "select * from course where id = :id", nativeQuery = true)
     Course findByIdWithSessions(@Param("id")  int id);
 
+    @Query("select s from Session s where s.course.id = :courseId")
+    Session findSessionsByCourseId(@Param("courseId") int courseId);
 
 }

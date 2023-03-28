@@ -26,7 +26,6 @@ public class SessionDto {
 
     @Nullable
     private String[] date;
-
     @Nullable
     private List<SessionDto> children;
 

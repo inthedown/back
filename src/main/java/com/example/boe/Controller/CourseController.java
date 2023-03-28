@@ -41,4 +41,10 @@ public class CourseController {
     public ResponseData changeCourse(@RequestBody CourseDto courseDto){
         return courseService.update(courseDto);
     }
+
+    //获取session列表
+    @RequestMapping("/getSessionList")
+    public ResponseData getSessionList(int id){
+        return courseService.getSessionList(id);
+    }
 }

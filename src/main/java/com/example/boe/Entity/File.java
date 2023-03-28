@@ -1,5 +1,7 @@
 package com.example.boe.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -42,6 +44,7 @@ public class File {
     @Column(name = "update_time")
     private Timestamp updateTime;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "session_id")
     private Session session;
