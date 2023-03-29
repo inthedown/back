@@ -1,6 +1,7 @@
 package com.example.boe.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.ToString;
@@ -36,11 +37,11 @@ public class Session {
     private Course course;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<File> files;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "parentSession", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "parentSession", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Session> childSessions;
 
     @JsonBackReference

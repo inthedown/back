@@ -1,10 +1,14 @@
 package com.example.boe.Util;
 
 import com.example.boe.Entity.Classes;
+import com.example.boe.Entity.Session;
+import org.hibernate.Hibernate;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.List;
 
-public class Util {
+public  class Util {
     public static <T, S> void map(T dto, S entity) throws IllegalAccessException {
         Class<?> dtoClass = dto.getClass();
         Class<?> entityClass = entity.getClass();
@@ -24,16 +28,31 @@ public class Util {
         }
     }
 
-    public static void main(String[] args) {
-        Classes a=new Classes();
-        a.setClassName("a");
-        a.setId(1);
-        Classes b=new Classes();
-        try {
-            map(a,b);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+    //嵌套对象持久化加载所有懒加载属性
+    public static void initial(Object o){
+        if(o instanceof Collection){
+            for(Object obj:(Collection)o){
+                initial(obj);
+            }
+        }else if(o instanceof Session){
+            Session session = (Session)o;
+            Hibernate.initialize(session.getFiles());
+            Hibernate.initialize(session.getChildSessions());
+            initial(session.getChildSessions());
+        }else if(o instanceof Object){
+            //利用反射获取所有List属性
+            for(java.lang.reflect.Field field:o.getClass().getDeclaredFields()){
+                if(field.getType().equals(List.class)){
+                    try {
+                        field.setAccessible(true);
+                        List list = (List)field.get(o);
+                        initial(list);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
-        System.out.println(b.toString());
     }
+
 }

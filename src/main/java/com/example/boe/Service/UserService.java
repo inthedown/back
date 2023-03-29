@@ -1,6 +1,7 @@
 package com.example.boe.Service;
 
 import com.example.boe.Form.LoginDto;
+import com.example.boe.Form.ToDto;
 import com.example.boe.result.ResponseData;
 
 public interface UserService {
@@ -14,4 +15,7 @@ public interface UserService {
     //删除
     ResponseData delete(LoginDto loginDto);
 
+    ResponseData addUser(LoginDto loginDto);
+
+    ResponseData stuToCla(ToDto toDto);
 }

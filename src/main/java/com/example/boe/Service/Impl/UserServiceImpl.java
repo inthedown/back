@@ -1,19 +1,31 @@
 package com.example.boe.Service.Impl;
 
 
+import com.example.boe.Entity.Classes;
+import com.example.boe.Entity.Course;
 import com.example.boe.Entity.Student;
 import com.example.boe.Entity.Teacher;
 import com.example.boe.Form.LoginDto;
+import com.example.boe.Form.ToDto;
+import com.example.boe.Repository.ClassesRepository;
+import com.example.boe.Repository.CourseRepository;
 import com.example.boe.Repository.StuRepository;
 import com.example.boe.Repository.TeaRepository;
 import com.example.boe.Service.UserService;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
+import com.example.boe.result.ServiceException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
 
@@ -21,7 +33,10 @@ public class UserServiceImpl implements UserService {
     private TeaRepository teaRepository;
     @Autowired
     private StuRepository stuRepository;
-
+    @Autowired
+    private CourseRepository courseRepository;
+    @Autowired
+    private ClassesRepository classesRepository;
 
     public ResponseData login(LoginDto loginDto) {
         if (!validateLoginDto(loginDto)) {
@@ -38,7 +53,7 @@ public class UserServiceImpl implements UserService {
             // 判断教师是否存在
             if (teacher == null) {
                 return new ResponseData(ExceptionMsg.FAILED, "账号不存在");
-            }else if (!teacher.getPassword().equals(password)) {// 判断密码是否正确
+            } else if (!teacher.getPassword().equals(password)) {// 判断密码是否正确
                 return new ResponseData(ExceptionMsg.FAILED, "密码错误");
             }
         } else if (role.equals("student")) {
@@ -47,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
             if (student == null) {// 判断学生是否存在
                 return new ResponseData(ExceptionMsg.FAILED, "账号不存在");
-            }else if (!student.getPassword().equals(password)) {// 判断密码是否正确
+            } else if (!student.getPassword().equals(password)) {// 判断密码是否正确
                 return new ResponseData(ExceptionMsg.FAILED, "密码错误");
             }
         }
@@ -106,18 +121,52 @@ public class UserServiceImpl implements UserService {
         String role = loginDto.getRole();
         String accountName = loginDto.getAccountName();
         Object entity = getUserEntity(accountName, role);
-        if(entity == null){
+        if (entity == null) {
             return new ResponseData(ExceptionMsg.FAILED, "用户不存在");
-        }else{
-            if(role.equals("teacher")){
+        } else {
+            if (role.equals("teacher")) {
                 teaRepository.delete((Teacher) entity);
-            }else if(role.equals("student")){
+            } else if (role.equals("student")) {
                 stuRepository.delete((Student) entity);
             }
         }
 
 
         return new ResponseData(ExceptionMsg.SUCCESS, "删除成功");
+    }
+
+    @Override
+    public ResponseData addUser(LoginDto loginDto) {
+        String role = loginDto.getRole();
+        if (role.equals("teacher")) {
+            Teacher teacher = Optional.ofNullable(teaRepository.findByAccountName(loginDto.getAccountName()))
+                    .orElseThrow(() -> new ServiceException("教师不存在"));
+            Course course = courseRepository.findByName(loginDto.getCourseName());
+            course.setTeacher(teacher);
+            courseRepository.save(course);
+        } else if (role.equals("student")) {
+            Student student = Optional.ofNullable(stuRepository.findByAccountName(loginDto.getAccountName()))
+                    .orElseThrow(() -> new ServiceException("学生不存在"));
+            Classes classes = classesRepository.findByClassName(loginDto.getClassesName());
+            classes.setStudents(Collections.singletonList(student));
+            classesRepository.save(classes);
+        }
+        return new ResponseData(ExceptionMsg.SUCCESS, "添加成功");
+    }
+
+    @Override
+    @Transactional
+    public ResponseData stuToCla(ToDto toDto) {
+        String classesName = toDto.getClassesName();
+        Integer[] stuIds = toDto.getStuId();
+        Classes classes = Optional.ofNullable(classesRepository.findByClassName(classesName)).orElseThrow(() -> new ServiceException("班级不存在"));
+        //遍历数组,根据id查找学生
+        for (int i = 0; i < stuIds.length; i++) {
+            Student student = Optional.ofNullable(stuRepository.findById(stuIds[i]).get()).orElseThrow(() -> new ServiceException("学生不存在"));
+            student.setClasses(classes);
+            stuRepository.save(student);
+        }
+        return new ResponseData(ExceptionMsg.SUCCESS, "添加成功");
     }
 
     // 获取用户实体类对象

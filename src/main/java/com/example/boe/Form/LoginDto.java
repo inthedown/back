@@ -15,6 +15,8 @@ public class LoginDto {
     private String name;
     private String info;
     private String oldPassword;
+    private String classesName;
+    private String courseName;
     //根据role转换为对应的实体类
     public Object toEntity() {
         if (role.equals("teacher")) {

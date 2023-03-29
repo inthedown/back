@@ -1,5 +1,8 @@
 package com.example.boe.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -8,6 +11,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "classes", schema = "edu")
+@JsonIgnoreProperties(value={"courses","students"})
 public class Classes {
 
     @Id
@@ -18,10 +22,13 @@ public class Classes {
     @Column(name = "class_name")
     private String className;
 
-    @OneToMany(mappedBy = "classes", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "classes" , cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Student> students;
 
-    @OneToMany(mappedBy="classes", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @JsonManagedReference
+    @OneToMany(mappedBy="classes" , cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Course> courses;
 
 }

@@ -9,7 +9,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
-    @Query(value = "select * from course where id in (select cla_id from cla_stu_sheet where stu_id = ?1)", nativeQuery = true)
+    //q:如何关联course和student,依靠student的classes_id和course的classes_id
+    @Query(value = "select * from course where classes_id in (select classes_id from student where id=?1)", nativeQuery = true)
     List<Course> findCourseByStudentId(int id);
 
     @Query(value = "select * from course where teacher_id = ?1", nativeQuery = true)
@@ -22,4 +23,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     @Query("select s from Session s where s.course.id = :courseId")
     Session findSessionsByCourseId(@Param("courseId") int courseId);
 
+    @Query(value = "select * from course where course_name = ?1", nativeQuery = true)
+    Course findByName(String courseName);
 }

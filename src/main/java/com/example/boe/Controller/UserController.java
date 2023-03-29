@@ -1,6 +1,7 @@
 package com.example.boe.Controller;
 
 import com.example.boe.Form.LoginDto;
+import com.example.boe.Form.ToDto;
 import com.example.boe.Service.UserService;
 import com.example.boe.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,5 +43,14 @@ public class UserController {
     public ResponseData delete(@RequestBody LoginDto loginDto) {
 
         return userService.delete(loginDto);
+    }
+
+    @PostMapping("/addUser")
+    public ResponseData addUser(@RequestBody LoginDto loginDto) {
+        return userService.addUser(loginDto);
+    }
+    @PostMapping("/stuToCla")
+    public ResponseData stuToCla(@RequestBody ToDto toDto) {
+        return userService.stuToCla(toDto);
     }
 }

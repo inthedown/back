@@ -8,12 +8,15 @@ import com.example.boe.Util.Util;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 @Slf4j
 @Service
+@Transactional
 public class ClassesServiceImpl implements ClassesService {
 
     @Autowired
@@ -57,7 +60,9 @@ public class ClassesServiceImpl implements ClassesService {
 
     @Override
     public ResponseData getDetail(int id) {
-
-        return new ResponseData(ExceptionMsg.SUCCESS, classesRepository.findById(id).get());
+        Classes classes = classesRepository.findById(id).get();
+        Hibernate.initialize(classes.getStudents());
+        Hibernate.initialize(classes.getCourses());
+        return new ResponseData(ExceptionMsg.SUCCESS, classes);
     }
 }

@@ -1,6 +1,8 @@
 package com.example.boe.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
@@ -19,23 +21,29 @@ public class Course {
     @Basic
     @Column(name = "course_name")
     private String courseName;
-    @Basic
-    @Column(name = "teacher_id")
-    private int teacherId;
+
     @Basic
     @Column(name = "start_time")
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp startTime;
     @Basic
     @Column(name = "end_time")
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp endTime;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Session> sessions;
 
+
     @ManyToOne
     @JoinColumn(name = "classes_id")
     private Classes classes;
+
+
+    @ManyToOne
+    @JoinColumn(name = "teacher_id")
+    private Teacher teacher;
 
     public Classes getClasses() {
         return classes;
@@ -45,13 +53,4 @@ public class Course {
         this.classes = classes;
     }
 
-    public String toString() {
-        return "Course{" +
-                "id=" + id +
-                ", courseName='" + courseName + '\'' +
-                ", teacherId=" + teacherId +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
-                '}';
-    }
 }

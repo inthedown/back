@@ -1,11 +1,16 @@
 package com.example.boe.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
+
 @Entity
 @Data
 @Table(name = "teacher", schema = "edu")
+@JsonIgnoreProperties(value={"courses"})
 public class Teacher {
     @Id
     @Column(name = "id")
@@ -29,6 +34,10 @@ public class Teacher {
     @Basic
     @Column(name = "info")
     private String info;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<Course> courses;
 
     public Teacher(String accountName, String password, String name, String email,String info) {
         this.accountName = accountName;

@@ -1,12 +1,17 @@
 package com.example.boe.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Data
 @Table(name = "student", schema = "edu")
+@JsonIgnoreProperties(value={"classes"})
 public class Student {
     @Id
     @Column(name = "id")
@@ -31,17 +36,13 @@ public class Student {
     @Column(name = "grade")
     private String grade;
 
+    //q:toString()出现循环引用
+    //a:在Student类中加入注解@JsonBackReference
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "classes_id")
     private Classes classes;
 
-    public Classes getClasses() {
-        return classes;
-    }
-
-    public void setClasses(Classes classes) {
-        this.classes = classes;
-    }
 
     public Student(String accountName, String password, String email, String grade, String name) {
         this.accountName = accountName;
