@@ -3,35 +3,16 @@ package com.example.boe.Entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
 @Data
 @Table(name = "student", schema = "edu")
 @JsonIgnoreProperties(value={"classes"})
-public class Student {
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    @Basic
-    @Column(name = "account_name")
-    private String accountName;
-    @Basic
-    @Column(name = "password")
-    private String password;
-    @Basic
-    @Column(name = "name")
-    private String name;
-    @Basic
-    @Column(name = "email")
-    private String email;
-    @Basic
-    @Column(name = "role")
-    private String role;
+public class Student extends User {
+
+
     @Basic
     @Column(name = "grade")
     private String grade;
@@ -44,16 +25,14 @@ public class Student {
     private Classes classes;
 
 
-    public Student(String accountName, String password, String email, String grade, String name) {
-        this.accountName = accountName;
-        this.password = password;
-        this.email = email;
-        this.role = "student";
-        this.grade = grade;
-        this.name = name;
-    }
 
     public Student() {
+
+    }
+
+    public Student(String userName, String password, String name ,String email, String grade) {
+        super(userName, password, name, email);
+        this.grade = grade;
 
     }
 }

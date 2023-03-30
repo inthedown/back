@@ -22,7 +22,7 @@ public class LoginDto {
         if (role.equals("teacher")) {
             return new Teacher(accountName, password,name, email,  info);
         } else if (role.equals("student")) {
-            return new Student(accountName, password, email, grade, name);
+            return new Student(accountName, password, name,email, grade);
         }  else {
             return null;
         }

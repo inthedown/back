@@ -61,8 +61,11 @@ public class ClassesServiceImpl implements ClassesService {
     @Override
     public ResponseData getDetail(int id) {
         Classes classes = classesRepository.findById(id).get();
-        Hibernate.initialize(classes.getStudents());
+        Util.initial(classes);
+        //把classes里面的course和老师都初始化包装
         Hibernate.initialize(classes.getCourses());
+        Hibernate.initialize(classes.getStudents());
+
         return new ResponseData(ExceptionMsg.SUCCESS, classes);
     }
 }

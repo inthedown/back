@@ -1,9 +1,6 @@
 package com.example.boe.Entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -13,6 +10,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "course", schema = "edu")
+@JsonIgnoreProperties(value={"classes","teacher","sessions"})
 public class Course {
     @Id
     @Column(name = "id")
