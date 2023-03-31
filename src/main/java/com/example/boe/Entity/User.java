@@ -7,6 +7,8 @@ import java.sql.Timestamp;
 
 @Data
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "user_type")
 @Table(name = "user", schema = "edu")
 public class User {
     /**
@@ -25,7 +27,7 @@ public class User {
 
     @Basic
     @Column(name = "user_name")
-    private String username;
+    private String userName;
 
     @Basic
     @Column(name = "password")
@@ -63,7 +65,7 @@ public class User {
     private static final long serialVersionUID = 1L;
 
     public User(String accountName, String password, String name, String email) {
-        this.username = accountName;
+        this.userName = accountName;
         this.password = password;
         this.name = name;
         this.email = email;

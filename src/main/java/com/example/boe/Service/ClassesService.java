@@ -1,6 +1,8 @@
 package com.example.boe.Service;
 
+import com.example.boe.Entity.User;
 import com.example.boe.Form.ClassesDto;
+import com.example.boe.Form.ClassesParam;
 import com.example.boe.result.ResponseData;
 
 public interface ClassesService {
@@ -11,4 +13,6 @@ public interface ClassesService {
     ResponseData update(ClassesDto classesDto);
 
     ResponseData getDetail(int id);
+
+    ResponseData getList(ClassesParam classesParam, User user);
 }

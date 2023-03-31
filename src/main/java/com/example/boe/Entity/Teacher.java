@@ -10,6 +10,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "teacher", schema = "edu")
+@DiscriminatorValue("teacher")
 @JsonIgnoreProperties(value={"courses"})
 public class Teacher extends User {
 

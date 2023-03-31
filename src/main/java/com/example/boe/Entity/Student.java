@@ -9,6 +9,7 @@ import javax.persistence.*;
 @Entity
 @Data
 @Table(name = "student", schema = "edu")
+@DiscriminatorValue("student")
 @JsonIgnoreProperties(value={"classes"})
 public class Student extends User {
 

@@ -89,7 +89,7 @@ public class LoginInterceptorConfig implements HandlerInterceptor {
 
 
 
-        if(user == null || StringUtils.isBlank(user.getUsername())){
+        if(user == null || StringUtils.isBlank(user.getUserName())){
             throw new TokenException("无效的token");
         }
 

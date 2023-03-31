@@ -1,9 +1,12 @@
 package com.example.boe.Service.Impl;
 
 import com.example.boe.Config.LoginInterceptorConfig;
+import com.example.boe.Entity.Student;
+import com.example.boe.Entity.Teacher;
 import com.example.boe.Entity.User;
 import com.example.boe.Entity.UserToken;
 import com.example.boe.Form.LoginUser;
+import com.example.boe.Form.UserDto;
 import com.example.boe.Form.UserParam;
 import com.example.boe.Repository.UserLoginLogRepository;
 import com.example.boe.Repository.UserRepository;
@@ -13,6 +16,8 @@ import com.example.boe.Util.*;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
 import com.example.boe.result.ServiceException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,9 +32,11 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
+@Slf4j
 public class LoginServiceImpl implements LoginService {
 
     @Autowired
@@ -58,6 +65,7 @@ public class LoginServiceImpl implements LoginService {
         if(!StringUtils.hasLength(username) || !StringUtils.hasLength(password)) {
             throw new ServiceException("用户名密码不为空");
         }
+        log.info("username:{}",username+"password:{}",password);
         User user = userRepository.findUserByUsername(username);
         if(user != null && user.getLoginErrorTimes() >= 5 && (System.currentTimeMillis() - user.getLockTime().getTime()) <= 24 * 60 * 60 * 1000) {
             LocalDateTime localDateTime = user.getLockTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusDays(1);
@@ -106,7 +114,7 @@ public class LoginServiceImpl implements LoginService {
             user.setPassword(null);
             user.setToken(s);
             user.setCreateTime(null);
-            user.setUsername(AESCode.encrypt(user.getUsername(), AESCode.USER_NAME_KEY));
+            user.setUserName(AESCode.encrypt(user.getUserName(), AESCode.USER_NAME_KEY));
             user.setId(null);
             boolean insert = true;
             if(insert) {
@@ -145,21 +153,79 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseData getList(UserParam userParam, User user) {
-        if(user.getRoleId()!=1) {
-            throw new ServiceException("无权限");
+//        if(user.getRoleId()!=1) {
+//            throw new ServiceException("无权限");
+//        }
+        int current =0;
+        int size = 10;
+        String userName = null;
+        Integer role = null;
+        if (userParam != null) {
+            current = userParam.getCurrent()-1;
+            size = userParam.getSize();
+            userName = userParam.getUserName().equals("")?null:userParam.getUserName();
+            role = userParam.getRoleId().equals("")?null:Integer.valueOf( userParam.getRoleId());
         }
-        Pageable pageable = PageRequest.of(userParam.getCurrent(), userParam.getSize());
-        Page<User> page =userRepository.findByParam(userParam.getUserName(), userParam.getRole(), pageable);
-        List<User> users = page.getContent();
 
-        return new ResponseData(ExceptionMsg.SUCCESS,users);
+        Pageable pageable = PageRequest.of(current, size);
+        Page<User> page = userRepository.findByParam(userName,role,pageable);
+        List<User> list = page.getContent();
+        return new ResponseData(ExceptionMsg.SUCCESS,list);
+    }
+
+    @Override
+    public ResponseData addUser(UserDto userDto) {
+//        if(userDto.getRole().equals(1)) {
+//            throw new ServiceException("无权限");
+//        }
+        log.info("userDto:{}",userDto);
+        if(userRepository.findUserByUsername(userDto.getUserName()) != null) {
+            throw new ServiceException("用户名已存在");
+        }else{
+            userDto.setPassword(PasswordEncoder.encode(userDto.getPassword()));
+        }
+        User user = new User();
+        //教师学生继承user,所以这里需要判断
+        if(userDto.getRoleId().equals(2)) {
+            Teacher teacher = new Teacher();
+            BeanUtils.copyProperties(userDto,teacher);
+            teacher.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            userRepository.save(teacher);
+        } else if(userDto.getRoleId().equals(3)) {
+            Student student = new Student();
+            BeanUtils.copyProperties(userDto,student);
+            student.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            userRepository.save(student);
+        } else {
+            BeanUtils.copyProperties(userDto,user);
+            user.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            userRepository.save(user);
+        }
+        return new ResponseData(ExceptionMsg.SUCCESS);
+    }
+
+    @Override
+    public ResponseData deleteUser(Integer[] ids) {
+        //jpa批量删除
+        userRepository.deleteByIdIn(Arrays.asList(ids));
+        return new ResponseData(ExceptionMsg.SUCCESS);
+    }
+
+    @Override
+    public ResponseData seePwd(Integer id, User user) {
+//        if(user.getRoleId()!=1) {
+//            throw new ServiceException("无权限");
+//        }
+        User user1 = userRepository.findById(id).get();
+        return new ResponseData(ExceptionMsg.SUCCESS,PasswordEncoder.decode(user1.getPassword()));
+
     }
 
     public static void main(String[] args) {
-        try {
-            System.out.println(RSAEncrypt.decrypt("drkXO1d6gQdDILoUIB7kbbfSRnb8/Dsmf3byL2SMBwai0DaGV0DpmBai1FNgofOnrzHYf28yYdWNI48o+8WqLGI/bJy1rY8OR0/KG3f1/rPJU9Lz5Fk3xU+cEK3TTzOOH4fi5Xjf1LpWdPXCGAV1+NNaKkeNCIrXQT6nLx+tYG0="));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            System.out.println(RSAEncrypt.decrypt("x/CUPHRBmIrMU7istdwJbi9fEU1vtuq08AybbW0caHqZLaheo9xsOv2lUwH8Vix1fprhjH2cPKdXP6KPLYeIikz2jNrqGOFru6dwCIE7Frrk+PGDq/6lRRnW7bxhJu29AJQA75/f4JVjW+5S3Xoo5OwqQ8wowUt8156oQTubg5o="));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 }

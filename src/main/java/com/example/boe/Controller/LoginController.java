@@ -2,10 +2,12 @@ package com.example.boe.Controller;
 
 import com.example.boe.Entity.User;
 import com.example.boe.Form.LoginUser;
+import com.example.boe.Form.UserDto;
 import com.example.boe.Form.UserParam;
 import com.example.boe.Service.LoginService;
 import com.example.boe.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,9 +42,22 @@ public class LoginController extends BaseController{
 
 
     @PostMapping("/getList")
-    public ResponseData getList(@RequestBody UserParam userParam) {
+    public ResponseData getList(@RequestBody @Nullable UserParam userParam) {
 
         return loginService.getList(userParam,getUser());
     }
 
+    @PostMapping("/addUser")
+    public ResponseData addUser(@RequestBody UserDto userDto) {
+        return loginService.addUser(userDto);
+    }
+
+    @PostMapping("/deleteUser")
+    public ResponseData deleteUser(@RequestBody Integer[] ids) {
+        return loginService.deleteUser(ids);
+    }
+    @GetMapping("/seePwd/{id}")
+    public ResponseData seePwd(@PathVariable("id") Integer id) {
+        return loginService.seePwd(id,getUser());
+    }
 }

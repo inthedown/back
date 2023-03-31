@@ -1,7 +1,9 @@
 package com.example.boe.Service.Impl;
 
 import com.example.boe.Entity.Classes;
+import com.example.boe.Entity.User;
 import com.example.boe.Form.ClassesDto;
+import com.example.boe.Form.ClassesParam;
 import com.example.boe.Repository.ClassesRepository;
 import com.example.boe.Service.ClassesService;
 import com.example.boe.Util.Util;
@@ -10,9 +12,13 @@ import com.example.boe.result.ResponseData;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 @Slf4j
 @Service
@@ -67,5 +73,22 @@ public class ClassesServiceImpl implements ClassesService {
         Hibernate.initialize(classes.getStudents());
 
         return new ResponseData(ExceptionMsg.SUCCESS, classes);
+    }
+
+    @Override
+    public ResponseData getList(ClassesParam classesParam, User user) {
+        if(user.getRoleId()==2){
+            throw new RuntimeException("没有权限");
+        }
+        int current =0;
+        int size = 10;
+        if (classesParam != null) {
+            current =  classesParam.getCurrent()-1;
+            size =  classesParam.getSize();
+        }
+        Pageable pageable = PageRequest.of(current, size);
+        Page<Classes> page = classesRepository.findByParam(classesParam,pageable);
+        List<Classes> list = page.getContent();
+        return new ResponseData(ExceptionMsg.SUCCESS, list);
     }
 }

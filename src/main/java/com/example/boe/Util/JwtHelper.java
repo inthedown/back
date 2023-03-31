@@ -36,7 +36,7 @@ public class JwtHelper {
                 .withHeader(map)
                 .withClaim("id", user.getId())
                 .withClaim("roleId", user.getRoleId())
-                .withClaim("username", user.getUsername())
+                .withClaim("userName", user.getUserName())
                 .withClaim("name", user.getName())
                 .withClaim("createTime", user.getCreateTime())
                 .withIssuedAt(now.getTime())  //iat
@@ -74,7 +74,7 @@ public class JwtHelper {
         User user = new User();
         user.setId(decodedJWT.getClaim("id").asInt());
         user.setName(decodedJWT.getClaim("name").asString());
-        user.setUsername(decodedJWT.getClaim("username").asString());
+        user.setUserName(decodedJWT.getClaim("username").asString());
         user.setCreateTime(new Timestamp(decodedJWT.getClaim("createTime").asDate().getTime()) );
         user.setRoleId(decodedJWT.getClaim("roleId").asInt());
         return user;
