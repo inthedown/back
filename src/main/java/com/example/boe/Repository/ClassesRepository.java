@@ -24,9 +24,12 @@ public interface ClassesRepository extends JpaRepository<Classes, Integer>, JpaS
     default Page<Classes> findByParam(ClassesParam classesParam, Pageable pageable) {
         return findAll((root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (classesParam.getClassName() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("className"), classesParam.getClassName()));
+            if (classesParam!= null) {
+                if (classesParam.getClassName() != null) {
+                    predicates.add(criteriaBuilder.equal(root.get("className"), classesParam.getClassName()));
+                }
             }
+
 
             return query.where(predicates.toArray(new Predicate[predicates.size()])).getRestriction();
         }, pageable);

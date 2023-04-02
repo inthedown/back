@@ -5,6 +5,7 @@ import com.example.boe.Form.ClassesParam;
 import com.example.boe.Service.ClassesService;
 import com.example.boe.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +33,7 @@ public class ClassesController extends BaseController{
         return classesService.getDetail(id);
     }
     @RequestMapping("/getList")
-    public ResponseData getList(@RequestBody ClassesParam classesParam){
+    public ResponseData getList(@RequestBody @Nullable ClassesParam classesParam){
         return classesService.getList(classesParam,getUser());
     }
 }

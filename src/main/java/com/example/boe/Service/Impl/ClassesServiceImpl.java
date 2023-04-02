@@ -77,9 +77,9 @@ public class ClassesServiceImpl implements ClassesService {
 
     @Override
     public ResponseData getList(ClassesParam classesParam, User user) {
-        if(user.getRoleId()==2){
-            throw new RuntimeException("没有权限");
-        }
+//        if(user.getRoleId()==2){
+//            throw new RuntimeException("没有权限");
+//        }
         int current =0;
         int size = 10;
         if (classesParam != null) {
