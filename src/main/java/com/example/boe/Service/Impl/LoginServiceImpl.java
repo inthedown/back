@@ -1,29 +1,25 @@
 package com.example.boe.Service.Impl;
 
 import com.example.boe.Config.LoginInterceptorConfig;
-import com.example.boe.Entity.Student;
-import com.example.boe.Entity.Teacher;
-import com.example.boe.Entity.User;
-import com.example.boe.Entity.UserToken;
+import com.example.boe.Entity.*;
+import com.example.boe.Form.ImportDto;
 import com.example.boe.Form.LoginUser;
 import com.example.boe.Form.UserDto;
 import com.example.boe.Form.UserParam;
-import com.example.boe.Repository.UserLoginLogRepository;
-import com.example.boe.Repository.UserRepository;
-import com.example.boe.Repository.UserTokenRepository;
+import com.example.boe.Repository.*;
 import com.example.boe.Service.LoginService;
 import com.example.boe.Util.*;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
 import com.example.boe.result.ServiceException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +30,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -51,6 +48,8 @@ public class LoginServiceImpl implements LoginService {
     @Autowired
     private JwtTokenUtils   jwtTokenUtils;
 
+    @Autowired
+    private StuRepository stuRepository;
     @Override
     public ResponseData login(LoginUser loginUser, String from, HttpServletResponse response) {
         String username = null;
@@ -62,7 +61,7 @@ public class LoginServiceImpl implements LoginService {
             throw new ServiceException("登陆出错");
         }
 
-        if(!StringUtils.hasLength(username) || !StringUtils.hasLength(password)) {
+        if(StringUtils.isBlank(username) || StringUtils.isBlank(password)) {
             throw new ServiceException("用户名密码不为空");
         }
         log.info("username:{}",username+"password:{}",password);
@@ -72,7 +71,7 @@ public class LoginServiceImpl implements LoginService {
             throw new ServiceException("用户已被锁定；将在"+localDateTime.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss"))+"后自动解锁");
         }
 
-        if(user == null || !StringUtils.hasLength(user.getPassword()) || !user.getPassword().equals(PasswordEncoder.encode(password))) {
+        if(user == null ||StringUtils.isBlank(user.getPassword()) || !user.getPassword().equals(PasswordEncoder.encode(password))) {
 
             String errorMsg = "用户名或密码错误";
             if(user != null) {
@@ -163,8 +162,8 @@ public class LoginServiceImpl implements LoginService {
         if (userParam != null) {
             current = userParam.getCurrent()-1;
             size = userParam.getSize();
-            userName = userParam.getUserName().equals("")?null:userParam.getUserName();
-            role = userParam.getRoleId().equals("")?null:Integer.valueOf( userParam.getRoleId());
+            userName = StringUtils.isBlank( userParam.getUserName())?null:userParam.getUserName();
+            role = StringUtils.isBlank(userParam.getRoleId())?null:Integer.valueOf( userParam.getRoleId());
         }
 
         Pageable pageable = PageRequest.of(current, size);
@@ -227,5 +226,30 @@ public class LoginServiceImpl implements LoginService {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
+    }
+
+    @Autowired
+    private ClassesRepository classesRepository;
+    @Override
+    public ResponseData importStu(ImportDto importDto,User user) {
+//        if(user.getRoleId()!=1) {
+//            throw new ServiceException("无权限");
+//        }
+        List<Integer> stuIds =importDto.getStuIds();
+        if (stuIds == null || stuIds.size() == 0) {
+            return new ResponseData(ExceptionMsg.FAILED,"学生不能为空");
+        }
+
+        Integer classId = importDto.getClassId();
+        if(classId == null) {
+            return new ResponseData(ExceptionMsg.FAILED,"班级不能为空");
+        }
+        List<Student> students = stuRepository.findAllById(stuIds);
+        Optional<Classes> classes = Optional.ofNullable( classesRepository.findById(classId)).orElseThrow(() -> new ServiceException("班级不存在"));
+        for (Student student : students) {
+            student.setClasses(classes.get());
+        }
+        stuRepository.saveAll(students);
+        return new ResponseData(ExceptionMsg.SUCCESS,"导入成功");
     }
 }

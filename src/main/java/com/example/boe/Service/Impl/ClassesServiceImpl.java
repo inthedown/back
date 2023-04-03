@@ -11,6 +11,7 @@ import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +32,7 @@ public class ClassesServiceImpl implements ClassesService {
 
     @Override
     public ResponseData add(ClassesDto classesDto) {
-        //JPA查询是否有重复accountName
+
         Classes classes = classesRepository.findByClassName(classesDto.getClassName());
         if (classes != null) {
             return new ResponseData(ExceptionMsg.FAILED, "班级名已存在");
@@ -89,6 +90,15 @@ public class ClassesServiceImpl implements ClassesService {
         Pageable pageable = PageRequest.of(current, size);
         Page<Classes> page = classesRepository.findByParam(classesParam,pageable);
         List<Classes> list = page.getContent();
+
+        list.forEach(classes -> {
+            Classes c = classesRepository.findById(classes.getId()).get();
+            Util.initial(c);
+            Hibernate.initialize(c.getCourses());
+            Hibernate.initialize(c.getStudents());
+            BeanUtils.copyProperties(c,classes);
+        });
+
         return new ResponseData(ExceptionMsg.SUCCESS, list);
     }
 }

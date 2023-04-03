@@ -1,6 +1,5 @@
 package com.example.boe.Util;
 
-import com.example.boe.Entity.Classes;
 import com.example.boe.Entity.Session;
 import org.hibernate.Hibernate;
 
@@ -41,7 +40,7 @@ public  class Util {
             initial(session.getChildSessions());
         }else if(o instanceof Object){
             //利用反射获取所有List属性
-            for(java.lang.reflect.Field field:o.getClass().getDeclaredFields()){
+            for(Field field:o.getClass().getDeclaredFields()){
                 if(field.getType().equals(List.class)){
                     try {
                         field.setAccessible(true);
@@ -54,5 +53,6 @@ public  class Util {
             }
         }
     }
+
 
 }

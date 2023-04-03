@@ -1,6 +1,7 @@
 package com.example.boe.Service;
 
 import com.example.boe.Entity.User;
+import com.example.boe.Form.ImportDto;
 import com.example.boe.Form.LoginUser;
 import com.example.boe.Form.UserDto;
 import com.example.boe.Form.UserParam;
@@ -21,4 +22,6 @@ public interface LoginService {
     ResponseData deleteUser(Integer[] ids);
 
     ResponseData seePwd(Integer id, User user);
+
+    ResponseData importStu(ImportDto importDto, User user);
 }

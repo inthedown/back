@@ -20,7 +20,7 @@ public interface ClassesRepository extends JpaRepository<Classes, Integer>, JpaS
     @Query(value = "select * from classes left join student on classes.id = student.classes_id where classes.id = ?1", nativeQuery = true)
     List<Map<String,Object>> findDetailById(int id);
 
-
+    //动态查询
     default Page<Classes> findByParam(ClassesParam classesParam, Pageable pageable) {
         return findAll((root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -29,7 +29,6 @@ public interface ClassesRepository extends JpaRepository<Classes, Integer>, JpaS
                     predicates.add(criteriaBuilder.equal(root.get("className"), classesParam.getClassName()));
                 }
             }
-
 
             return query.where(predicates.toArray(new Predicate[predicates.size()])).getRestriction();
         }, pageable);

@@ -1,11 +1,13 @@
 package com.example.boe.Controller;
 
 import com.example.boe.Entity.User;
+import com.example.boe.Form.ImportDto;
 import com.example.boe.Form.LoginUser;
 import com.example.boe.Form.UserDto;
 import com.example.boe.Form.UserParam;
 import com.example.boe.Service.LoginService;
 import com.example.boe.result.ResponseData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+@Slf4j
 @RestController
 @RequestMapping("/user1")
 public class LoginController extends BaseController{
@@ -59,5 +62,10 @@ public class LoginController extends BaseController{
     @GetMapping("/seePwd/{id}")
     public ResponseData seePwd(@PathVariable("id") Integer id) {
         return loginService.seePwd(id,getUser());
+    }
+    @PostMapping("/importStu")
+    public ResponseData importStu(@RequestBody @Nullable ImportDto importDto) {
+
+        return loginService.importStu(importDto,getUser());
     }
 }
