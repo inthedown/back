@@ -1,7 +1,6 @@
 package com.example.boe.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.ToString;
@@ -49,6 +48,9 @@ public class Session {
     @JoinColumn(name = "parent_session_id")
     private Session parentSession;
 
+    @JsonManagedReference
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<Comment> comments;
 
 
 }

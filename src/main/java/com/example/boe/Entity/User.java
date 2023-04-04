@@ -1,9 +1,11 @@
 package com.example.boe.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Data
 @Entity
@@ -61,6 +63,13 @@ public class User {
     @Column(name = "lock_time")
     private Timestamp lockTime;
 
+    @JsonManagedReference
+    @OneToMany(mappedBy = "userFrom", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<Comment> commentsFrom;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "userTo", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<Comment> commentsTo;
 
     private static final long serialVersionUID = 1L;
 

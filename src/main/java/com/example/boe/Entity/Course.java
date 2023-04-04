@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "course", schema = "edu")
-@JsonIgnoreProperties(value={"classes","teacher","sessions"})
+@JsonIgnoreProperties(value={"classes"})
 public class Course {
     @Id
     @Column(name = "id")

@@ -6,9 +6,7 @@ import com.example.boe.Service.ClassesService;
 import com.example.boe.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("classes")
@@ -16,7 +14,7 @@ public class ClassesController extends BaseController{
     @Autowired
     private ClassesService classesService;
     //CRUD
-    @RequestMapping("/add")
+    @PostMapping("/add")
     public ResponseData add(@RequestBody ClassesDto classesDto){
         return classesService.add(classesDto);
     }
@@ -24,15 +22,15 @@ public class ClassesController extends BaseController{
     public ResponseData delete(int id){
         return classesService.delete(id);
     }
-    @RequestMapping("/update")
+    @PostMapping("/update")
     public ResponseData update(@RequestBody ClassesDto classesDto){
         return classesService.update(classesDto);
     }
-    @RequestMapping("/getDetail")
-    public ResponseData getDetail(int id){
+    @PostMapping("/getDetail")
+    public ResponseData getDetail( int id){
         return classesService.getDetail(id);
     }
-    @RequestMapping("/getList")
+    @GetMapping("/getList")
     public ResponseData getList(@RequestBody @Nullable ClassesParam classesParam){
         return classesService.getList(classesParam,getUser());
     }

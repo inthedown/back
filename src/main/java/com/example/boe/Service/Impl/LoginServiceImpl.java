@@ -185,12 +185,12 @@ public class LoginServiceImpl implements LoginService {
         }
         User user = new User();
         //教师学生继承user,所以这里需要判断
-        if(userDto.getRoleId().equals(2)) {
+        if(userDto.getRoleId().equals(3)) {
             Teacher teacher = new Teacher();
             BeanUtils.copyProperties(userDto,teacher);
             teacher.setCreateTime(new Timestamp(System.currentTimeMillis()));
             userRepository.save(teacher);
-        } else if(userDto.getRoleId().equals(3)) {
+        } else if(userDto.getRoleId().equals(2)) {
             Student student = new Student();
             BeanUtils.copyProperties(userDto,student);
             student.setCreateTime(new Timestamp(System.currentTimeMillis()));

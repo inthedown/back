@@ -10,7 +10,6 @@ import com.example.boe.Util.Util;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -69,10 +68,6 @@ public class ClassesServiceImpl implements ClassesService {
     public ResponseData getDetail(int id) {
         Classes classes = classesRepository.findById(id).get();
         Util.initial(classes);
-        //把classes里面的course和老师都初始化包装
-        Hibernate.initialize(classes.getCourses());
-        Hibernate.initialize(classes.getStudents());
-
         return new ResponseData(ExceptionMsg.SUCCESS, classes);
     }
 
@@ -94,8 +89,6 @@ public class ClassesServiceImpl implements ClassesService {
         list.forEach(classes -> {
             Classes c = classesRepository.findById(classes.getId()).get();
             Util.initial(c);
-            Hibernate.initialize(c.getCourses());
-            Hibernate.initialize(c.getStudents());
             BeanUtils.copyProperties(c,classes);
         });
 

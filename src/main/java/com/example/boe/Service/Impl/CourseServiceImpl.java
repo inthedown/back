@@ -1,28 +1,23 @@
 package com.example.boe.Service.Impl;
 
-import com.example.boe.Entity.*;
-import com.example.boe.Form.CourseDto;
-import com.example.boe.Form.SessionDto;
-import com.example.boe.Form.UserInfoDto;
+import com.example.boe.Entity.Course;
+import com.example.boe.Entity.File;
+import com.example.boe.Entity.Session;
+import com.example.boe.Form.*;
 import com.example.boe.Repository.*;
 import com.example.boe.Service.CourseService;
 import com.example.boe.Util.Util;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
 import com.example.boe.result.ServiceException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManagerFactory;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,8 +61,21 @@ public class CourseServiceImpl implements CourseService {
         }else if(role.equals("teacher")){
             //获取教师课程列表
           courseList=  courseRepository.findCourseByTeacherId(id);
+        }else if(role.equals("admin")){
+            //获取所有课程列表
+            courseList= courseRepository.findAll();
+            return new ResponseData(ExceptionMsg.SUCCESS, courseList);
         }
-        return new ResponseData(ExceptionMsg.SUCCESS,courseList);
+        List<CourseFrontDto> courseFrontDtos = new ArrayList<>();
+        courseList.forEach(course -> {
+            CourseFrontDto courseFrontDto = new CourseFrontDto();
+            BeanUtils.copyProperties(course,courseFrontDto);
+            courseFrontDto.setTeacherId(course.getTeacher().getId());
+            courseFrontDto.setTeacherName(course.getTeacher().getName());
+            courseFrontDtos.add(courseFrontDto);
+
+        });
+        return new ResponseData(ExceptionMsg.SUCCESS, courseFrontDtos);
     }
 
     @Override
@@ -75,8 +83,11 @@ public class CourseServiceImpl implements CourseService {
 
        Course c= courseRepository.findById(id).get();
        //初始化session,file
-        Util.initial(c);
-        return new ResponseData(ExceptionMsg.SUCCESS, c);
+       Util.initial(c);
+       Util.initial(c.getSessions());
+//       Util.initial(c.getClasses());
+        c.setSessions(c.getSessions());
+       return new ResponseData(ExceptionMsg.SUCCESS,c);
 
     }
 
@@ -90,7 +101,7 @@ public class CourseServiceImpl implements CourseService {
         Course course = convertToCourse(courseDto);
         courseRepository.save(course);
         //把file与session关联
-        associateFileWithSession(course,courseDto.getData());
+        convertToFile(course.getSessions(), Collections.singletonList(courseDto.getData()));
         return new ResponseData(ExceptionMsg.SUCCESS,"添加成功");
     }
 
@@ -104,43 +115,57 @@ public class CourseServiceImpl implements CourseService {
         return times;
     }
 
+    private void convertToFile(List<Session> sessions,List< SessionDto> sessionDtos) {
+        if(sessionDtos==null||sessions==null){
+            return;}
 
+        else{
+            for(int i=0;i<sessionDtos.size();i++){
+                if(sessionDtos.get(i).getFileList()!=null){
+                    sessionToFile(sessions.get(i),sessionDtos.get(i).getFileList());
+                    convertToFile(sessions.get(i).getChildSessions(),sessionDtos.get(i).getChildren());
+                }else if(sessionDtos.get(i).getChildren()!=null){
+                    convertToFile(sessions.get(i).getChildSessions(),sessionDtos.get(i).getChildren());
+                }else{
+                    continue;
+                }
+
+            }
+        }
+    }
     private Course convertToCourse(CourseDto courseDto) {
         Course course = new Course();
         course.setCourseName(courseDto.getName());
         course.setTeacher(teaRepository.findById( courseDto.getTeacherId()).orElseThrow(() -> new ServiceException("教师不存在")));
-            Classes classes = Optional.ofNullable(classesRepository.findByClassName(courseDto.getClasses()))
-                    .orElseThrow(() ->new ServiceException("班级不存在"));
-            course.setClasses(classes);
+
 
         Session session = convertToSession(courseDto.getData());
         session.setCourse(course);
         course.setSessions(Collections.singletonList(session));
         List<Timestamp>times=getAllTimes(session);
-        log.info("times{}",times.size());
         course.setStartTime(Collections.min(times));
         course.setEndTime(Collections.max(times));
         return course;
     }
-    private void associateFileWithSession(Course course,SessionDto sessionDto) {
-        log.info("course:{}",course.getSessions().size());
-        course.getSessions().forEach(session -> {
-            List<File> files = Optional.ofNullable(sessionDto.getFileList())
-                    .orElse(Collections.emptyList())
-                    .stream()
-                    .map(fileDto -> {
-                        log.info("file:{}",fileDto.getUid());
-                        File aFile = fileRepository.findFileByUid(fileDto.getUid());
-                        if (aFile != null) {
-                            aFile.setSession(session);
-                            return aFile;
-                        } else {
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        });
+
+    private void sessionToFile(Session session, List<FileDto> fileDtos) {
+        List<File> files = Optional.ofNullable(fileDtos)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(fileDto -> {
+                    File aFile = fileRepository.findFileByUid(fileDto.getUid());
+                    if (aFile != null) {
+                        System.out.println("fileName"+aFile.getName()+"sessionId"+session.getSessionName());
+                        aFile.setSession(session);
+                        return aFile;
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+//        session.setFiles(files);
+
 
     }
     private Session convertToSession(SessionDto sessionDto) {
@@ -153,23 +178,6 @@ public class CourseServiceImpl implements CourseService {
             session.setStartTime(null);
             session.setEndTime(null);
         }
-
-
-        List<File> files = Optional.ofNullable(sessionDto.getFileList())
-                .orElse(Collections.emptyList())
-                .stream()
-                .map(fileDto -> {
-                    File aFile = fileRepository.findFileByUid(fileDto.getUid());
-                    if (aFile != null) {
-                        return aFile;
-                    } else {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-        session.setFiles(files);
-
 
         List<Session> childSessions = Optional.ofNullable(sessionDto.getChildren())
                 .orElse(Collections.emptyList())
