@@ -12,5 +12,5 @@ public class CourseFrontDto {
     private String teacherName;
     private Timestamp startTime;
     private Timestamp endTime;
-
+    private Integer sessionNum;
 }

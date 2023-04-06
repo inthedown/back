@@ -4,6 +4,7 @@ import com.example.boe.Entity.Session;
 import org.hibernate.Hibernate;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 
@@ -55,4 +56,41 @@ public  class Util {
     }
 
 
+    public static float getRate(Timestamp startTime, Timestamp endTime) {
+        long now = System.currentTimeMillis();
+        long start = startTime.getTime();
+        long end = endTime.getTime();
+        if (now < start) {
+            return 0;
+        } else if (now > end) {
+            return 1;
+        } else {
+            return (float) (now - start) / (end - start);
+        }
+    }
+
+    public static String getStatus(Timestamp startTime, Timestamp endTime) {
+        long now = System.currentTimeMillis();
+        long start = startTime.getTime();
+        long end = endTime.getTime();
+        if (now < start) {
+            return "B";
+        } else if (now > end) {
+            return "W";
+        } else {
+            return "G";
+        }
+    }
+    public static String getVariableName(Timestamp startTime, Timestamp endTime) {
+        long now = System.currentTimeMillis();
+        long start = startTime.getTime();
+        long end = endTime.getTime();
+        if (now < start) {
+            return "未开始";
+        } else if (now > end) {
+            return "已完成";
+        } else {
+            return "进行中";
+        }
+    }
 }

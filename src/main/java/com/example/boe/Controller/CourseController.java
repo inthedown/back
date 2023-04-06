@@ -5,14 +5,14 @@ import com.example.boe.Form.UserInfoDto;
 import com.example.boe.Service.CourseService;
 import com.example.boe.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 
 @RestController
 @RequestMapping("course")
-public class CourseController {
+public class CourseController extends BaseController {
 
     @Autowired
     private CourseService courseService;
@@ -46,5 +46,10 @@ public class CourseController {
     @RequestMapping("/getSessionList")
     public ResponseData getSessionList(int id){
         return courseService.getSessionList(id);
+    }
+
+    @RequestMapping("/importCou")
+    public ResponseData importCou(@RequestParam("courseId") List<Integer> courseIds, @RequestParam("classId")int classId){
+        return courseService.importCou(courseIds,classId);
     }
 }
