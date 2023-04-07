@@ -1,15 +1,18 @@
 package com.example.boe.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Data
 @Table(name = "file", schema = "boe")
+@JsonIgnoreProperties(value = { "resourceLogs"})
 public class File {
 
     @Id
@@ -48,6 +51,10 @@ public class File {
     @ManyToOne
     @JoinColumn(name = "session_id")
     private Session session;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "file")
+    private List<ResourceLog> resourceLogs;
 
     public Session getSession() {
         return session;

@@ -17,7 +17,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     List<Course> findCourseByTeacherId(int id);
 
 @Query("select c from Course c left join fetch c.sessions where c.id = :id")
-//    @Query(value = "select * from course where id = :id", nativeQuery = true)
     Course findByIdWithSessions(@Param("id")  int id);
 
     @Query("select s from Session s where s.course.id = :courseId")
@@ -25,4 +24,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     @Query(value = "select * from course where course_name = ?1", nativeQuery = true)
     Course findByName(String courseName);
+
+    @Query(value = "select * from course where classes_id = ?1", nativeQuery = true)
+    void deleteAllByIdIn(List<Integer> ids);
 }

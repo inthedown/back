@@ -32,9 +32,9 @@ public class CourseController extends BaseController {
         return courseService.add(courseDto);
     }
     //删除课程
-    @RequestMapping("/delete/{couId}")
-    public ResponseData deleteCourse(@PathVariable("couId") int id){
-        return courseService.delete(id);
+    @RequestMapping("/delete")
+    public ResponseData deleteCourse(@RequestParam("courseId") List<Integer> courseIds){
+        return courseService.delete(courseIds);
     }
     //修改课程
     @RequestMapping("/update")

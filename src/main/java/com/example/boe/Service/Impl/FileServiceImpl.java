@@ -44,12 +44,12 @@ public class FileServiceImpl implements FileService {
                 // 获取文件名
                 String name = file.getOriginalFilename();
                 String fileName = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + "_" + name;
-                System.out.print("（加个时间戳，尽量避免文件名称重复）保存的文件名为: "+fileName+"\n");
+                System.out.print("文件名 "+fileName+"\n");
                 //加个时间戳，尽量避免文件名称重复
                // String path = "/Users/no1/final/res" +fileName;//mac路径
                 String path = "E:/res/" +fileName;//windows路径
                 //文件绝对路径
-                System.out.print("保存文件绝对路径"+path+"\n");
+                System.out.print("绝对路径"+path+"\n");
                 //创建文件路径
                 java.io.File dest = new java.io.File(path);
                 //判断文件是否已经存在
@@ -66,7 +66,7 @@ public class FileServiceImpl implements FileService {
                     file.transferTo(dest); //保存文件
 
                     System.out.print("path:"+path+"\n");
-                    url="http://localhost:8080/res/"+fileName;
+                    url="http://localhost:8080/images/"+fileName;
 
                     String size= FileUitl.getFormatSize(file.getSize());
                     File newFile=new File();

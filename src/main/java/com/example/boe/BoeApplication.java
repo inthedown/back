@@ -1,11 +1,9 @@
 package com.example.boe;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@EnableAutoConfiguration
 public class BoeApplication   {
 
     //	打包war需要这个启动类，发布到服务器上

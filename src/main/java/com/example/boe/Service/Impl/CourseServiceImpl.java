@@ -80,22 +80,14 @@ public class CourseServiceImpl implements CourseService {
         return new ResponseData(ExceptionMsg.SUCCESS, courseFrontDtos);
     }
 
-    //TODO: 修改
-    public int countSessions(Object obj) {
+    //统计session数量
+    public int countSessions(List<Session> sessions) {
         int count = 0;
-        if (obj instanceof List) {
-            List<Object> list = (List<Object>) obj;
-            for (Object item : list) {
-                count += countSessions(item);
-            }
-        } else if (obj instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) obj;
-            if (map.containsKey("sessionName")) {
-                count += 1;
-            }
-            for (Object value : map.values()) {
-                count += countSessions(value);
-            }
+        for (Session session : sessions) {
+          count++;
+          if(session.getChildSessions()!=null){
+              count+=countSessions(session.getChildSessions());
+          }
         }
         return count;
     }
@@ -252,8 +244,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public ResponseData delete(int id) {
-        courseRepository.deleteById(id);
+    public ResponseData delete(List<Integer> ids) {
+        //批量删除
+        courseRepository.deleteAllByIdIn(ids);
         return new ResponseData(ExceptionMsg.SUCCESS, "删除成功");
     }
 

@@ -1,5 +1,7 @@
 package com.example.boe.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
@@ -11,6 +13,7 @@ import java.util.List;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "user_type")
+@JsonIgnoreProperties(value = {"commentsFrom", "commentsTo", "resourceLogs"})
 @Table(name = "user", schema = "edu")
 public class User {
     /**
@@ -63,15 +66,22 @@ public class User {
     @Column(name = "lock_time")
     private Timestamp lockTime;
 
-    @JsonManagedReference
+    @JsonBackReference
     @OneToMany(mappedBy = "userFrom", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Comment> commentsFrom;
 
-    @JsonManagedReference
+    @JsonBackReference
     @OneToMany(mappedBy = "userTo", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Comment> commentsTo;
 
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<ResourceLog> resourceLogs;
     private static final long serialVersionUID = 1L;
+
+
+
 
     public User(String accountName, String password, String name, String email) {
         this.userName = accountName;

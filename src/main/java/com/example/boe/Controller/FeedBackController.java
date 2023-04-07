@@ -4,18 +4,21 @@ import com.example.boe.Form.AddFeedBackDto;
 import com.example.boe.Service.FeedBackService;
 import com.example.boe.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+
+@RestController
+@RequestMapping("feedback")
 public class FeedBackController extends BaseController{
 
     @Autowired
     private FeedBackService feedBackService;
 
-    @RequestMapping("/getList")
-    public ResponseData getList(int id){
+    @PostMapping("/getList")
+    public ResponseData getList( int id){
         return feedBackService.getList(id,getUser());
     }
     @RequestMapping("/add")

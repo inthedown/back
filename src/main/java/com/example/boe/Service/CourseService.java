@@ -13,7 +13,7 @@ public interface CourseService {
 
     ResponseData add(CourseDto courseDto);
 
-    ResponseData delete(int id);
+    ResponseData delete(List<Integer> ids);
 
     ResponseData update(CourseDto courseDto);
 
