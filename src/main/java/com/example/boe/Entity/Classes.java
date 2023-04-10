@@ -9,7 +9,6 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "classes", schema = "edu")
-
 public class Classes {
 
     @Id

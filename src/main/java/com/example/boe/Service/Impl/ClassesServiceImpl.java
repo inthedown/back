@@ -10,7 +10,6 @@ import com.example.boe.Util.Util;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,8 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
 @Slf4j
 @Service
 @Transactional
@@ -85,11 +84,14 @@ public class ClassesServiceImpl implements ClassesService {
         Pageable pageable = PageRequest.of(current, size);
         Page<Classes> page = classesRepository.findByParam(classesParam,pageable);
         List<Classes> list = page.getContent();
-
+        List<Map<String,Object>> list1 = new ArrayList<>();
         list.forEach(classes -> {
-            Classes c = classesRepository.findById(classes.getId()).get();
-            Util.initial(c);
-            BeanUtils.copyProperties(c,classes);
+            Map<String,Object> map = new HashMap<>();
+            map.put("id",classes.getId());
+            map.put("className",classes.getClassName());
+            map.put("studentNum",classes.getStudents().size());
+            map.put("courseNum",classes.getCourses().size());
+            list1.add(map);
         });
 
         return new ResponseData(ExceptionMsg.SUCCESS, list);

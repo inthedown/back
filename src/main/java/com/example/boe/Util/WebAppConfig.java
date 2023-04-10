@@ -10,8 +10,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import javax.servlet.MultipartConfigElement;
 
-//上传配置类
-//图片放到/F:/fileUpload/后，从磁盘读取的图片数据scr将会变成images/picturename.jpg的格式
+/**
+ * 上传配置类
+ */
 @Configuration
 public class WebAppConfig extends WebMvcConfigurerAdapter {
     /**
@@ -50,6 +51,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/images/**").addResourceLocations("file:"+mImagesPath);
         // TODO Auto-generated method stub
         System.out.print("上传配置mImagesPath=="+mImagesPath+"\n");
+        //跨域
+//        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
         super.addResourceHandlers(registry);
     }
 

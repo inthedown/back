@@ -1,5 +1,6 @@
 package com.example.boe.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
@@ -9,7 +10,7 @@ import java.sql.Timestamp;
 @Data
 @Entity
 @Table(name = "comment", schema = "edu")
-
+@JsonIgnoreProperties(value = { "session" })
 public class Comment {
     @Id
     @Column(name = "id")
