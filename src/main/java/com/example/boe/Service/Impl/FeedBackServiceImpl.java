@@ -3,6 +3,7 @@ package com.example.boe.Service.Impl;
 import com.example.boe.Entity.Comment;
 import com.example.boe.Entity.User;
 import com.example.boe.Form.AddFeedBackDto;
+import com.example.boe.Form.GetFeedBackDto;
 import com.example.boe.Repository.CommentRepository;
 import com.example.boe.Repository.SessionRepository;
 import com.example.boe.Repository.UserRepository;
@@ -29,14 +30,27 @@ public class FeedBackServiceImpl implements FeedBackService {
     private UserRepository userRepository;
 
     @Override
-    public ResponseData getList(int sId , User user) {
+    public ResponseData getList(GetFeedBackDto getFeedBackDto , User user) {
 //        if(user==null){
 //            throw new ServiceException("用户未登录");
 //        }
-        List<Map<String,Object>> commentList = commentRepository.findAllBySId(sId);
+        String type=getFeedBackDto.getType();
+        List<Map<String,Object>> commentList=null;
+        switch (type){
+            case "课程":commentList = commentRepository.findAllByCourseId(getFeedBackDto.getCourseId());;
+                break;
+            case "节点":commentList=commentRepository.findAllBySId(getFeedBackDto.getSessionId());
+                break;
+            case "用户":commentList=commentRepository.findAllByUserFromId(getFeedBackDto.getUserId());
+                break;
+            default:
+                return new ResponseData(ExceptionMsg.FAILED,"type参数错误");
+        }
+
 
         return new ResponseData(ExceptionMsg.SUCCESS,commentList);
     }
+
 
     @Override
     public ResponseData add(AddFeedBackDto addFeedBackDto) {

@@ -1,6 +1,7 @@
 package com.example.boe.Controller;
 
 import com.example.boe.Entity.File;
+import com.example.boe.Form.LogDto;
 import com.example.boe.Service.FileService;
 import com.example.boe.result.ExceptionMsg;
 import com.example.boe.result.ResponseData;
@@ -38,5 +39,9 @@ public class FileController {
         fileService.delete(id);
         return  new ResponseData(ExceptionMsg.SUCCESS);
     }
-
+        @RequestMapping(value = "addLog",method = RequestMethod.POST)
+    public ResponseData addLog(@RequestBody LogDto logDto){
+        fileService.addLog(logDto);
+        return  new ResponseData(ExceptionMsg.SUCCESS);
+    }
 }

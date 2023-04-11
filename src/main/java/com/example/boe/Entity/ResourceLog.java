@@ -31,4 +31,7 @@ public class ResourceLog {
     @Column(name = "status")
     private String status;
 
+    @Basic
+    @Column(name = "percent")
+    private float percent;
 }

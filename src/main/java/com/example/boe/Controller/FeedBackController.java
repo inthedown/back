@@ -1,6 +1,7 @@
 package com.example.boe.Controller;
 
 import com.example.boe.Form.AddFeedBackDto;
+import com.example.boe.Form.GetFeedBackDto;
 import com.example.boe.Service.FeedBackService;
 import com.example.boe.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,8 @@ public class FeedBackController extends BaseController{
     private FeedBackService feedBackService;
 
     @PostMapping("/getList")
-    public ResponseData getList( int id){
-        return feedBackService.getList(id,getUser());
+    public ResponseData getList( @RequestBody GetFeedBackDto getFeedBackDto){
+        return feedBackService.getList(getFeedBackDto,getUser());
     }
     @RequestMapping("/add")
     public ResponseData add(@RequestBody AddFeedBackDto addFeedBackDto){

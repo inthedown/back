@@ -1,13 +1,16 @@
 package com.example.boe.Service.Impl;
 
 import com.example.boe.Entity.File;
+import com.example.boe.Entity.ResourceLog;
+import com.example.boe.Entity.User;
+import com.example.boe.Form.LogDto;
 import com.example.boe.Repository.FileRepository;
+import com.example.boe.Repository.ResourceLogRepository;
+import com.example.boe.Repository.UserRepository;
 import com.example.boe.Service.FileService;
 import com.example.boe.Util.FastImageInfo;
 import com.example.boe.Util.FileUitl;
-//import it.sauronsoftware.jave.Encoder;
-//import it.sauronsoftware.jave.EncoderException;
-//import it.sauronsoftware.jave.MultimediaInfo;
+import com.example.boe.result.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,12 +22,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 @Slf4j
 @Service
 public class FileServiceImpl implements FileService {
     private String  url;
     @Autowired
     private FileRepository fileRepository;
+    @Autowired
+    private ResourceLogRepository resourceLogRepository;
 
     @Override
     public List<File> upload(List<MultipartFile> files, String uidList) {
@@ -116,6 +123,28 @@ public class FileServiceImpl implements FileService {
 
     }
 
+    @Autowired
+    private UserRepository userRepository;
+    @Override
+    public void addLog(LogDto logDto) {
+        int userId=logDto.getUserId();
+        int fileId=logDto.getFileId();
+        float percent=logDto.getPercent();
 
+        User user= Optional.ofNullable( userRepository.findById(userId)).get().orElseThrow(()->{throw new ServiceException("用户不存在");});
+        File file= Optional.ofNullable( fileRepository.findById(fileId)).get().orElseThrow(()->{throw new ServiceException("文件不存在");});
+
+        ResourceLog resourceLog=new ResourceLog();
+        resourceLog.setFile(file);
+        resourceLog.setUser(user);
+        resourceLog.setPercent(percent);
+        resourceLog.setTime(new Timestamp(new Date().getTime()));
+        if(percent<1){
+            resourceLog.setStatus("未完成");
+        }else {
+            resourceLog.setStatus("已完成");
+        }
+        resourceLogRepository.save(resourceLog);
+    }
 
 }
