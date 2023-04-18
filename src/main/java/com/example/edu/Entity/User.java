@@ -62,6 +62,14 @@ public class User {
     @Basic
     @Column(name = "login_error_times")
     private Integer loginErrorTimes;
+
+    public Integer getLoginErrorTimes() {
+        if(loginErrorTimes==null)
+            return 0;
+        else
+            return loginErrorTimes;
+    }
+
     @Basic
     @Column(name = "lock_time")
     private Timestamp lockTime;

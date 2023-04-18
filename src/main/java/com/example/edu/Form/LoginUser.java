@@ -13,4 +13,6 @@ public class LoginUser {
 
     @NotNull
     private String password;
+    @NotNull
+    private int roleId;
 }

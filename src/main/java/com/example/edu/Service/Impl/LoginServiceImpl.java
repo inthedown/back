@@ -66,7 +66,7 @@ public class LoginServiceImpl implements LoginService {
         }
         log.info("username:{}",username+"password:{}",password);
         User user = userRepository.findUserByUsername(username);
-        if(user != null && user.getLoginErrorTimes() >= 5 && (System.currentTimeMillis() - user.getLockTime().getTime()) <= 24 * 60 * 60 * 1000) {
+        if(user != null && user.getLoginErrorTimes().intValue() >= 5 && (System.currentTimeMillis() - user.getLockTime().getTime()) <= 24 * 60 * 60 * 1000) {
             LocalDateTime localDateTime = user.getLockTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusDays(1);
             throw new ServiceException("用户已被锁定；将在"+localDateTime.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss"))+"后自动解锁");
         }
@@ -76,9 +76,11 @@ public class LoginServiceImpl implements LoginService {
             String errorMsg = "用户名或密码错误";
             if(user != null) {
                 userLoginLogRepository.insertLoginLog(0, username,"用户名或密码错误");
-                Integer loginErrorTimes = user.getLoginErrorTimes();
+                Integer loginErrorTimes = user.getLoginErrorTimes().intValue();
 
-
+                if(!user.getRoleId().equals(loginUser.getRoleId())){
+                    throw new ServiceException("角色错误");
+                }
                 if(loginErrorTimes == 0) {
                     user.setLockTime(new Timestamp(System.currentTimeMillis()));
                 } else if((System.currentTimeMillis() - user.getLockTime().getTime()) >= 5 * 60 * 1000 ) {
