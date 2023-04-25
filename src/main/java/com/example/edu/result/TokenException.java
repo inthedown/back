@@ -1,5 +1,6 @@
 package com.example.edu.result;
 
+
 public class TokenException extends RuntimeException{
 
     public TokenException() {

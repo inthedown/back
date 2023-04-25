@@ -36,6 +36,8 @@ public class LoginInterceptorConfig implements HandlerInterceptor {
     private UserRepository userRepository;
 
     private static  String[] REQUEST_PASS_URL=new String[]{"login","logout", "test/one"};
+
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
@@ -74,7 +76,7 @@ public class LoginInterceptorConfig implements HandlerInterceptor {
 
         List<UserToken> userTokenList =userTokenRepository.selectByToken(authToken);
         if(userTokenList == null || userTokenList.size() == 0 || System.currentTimeMillis() - userTokenList.get(0).getUpdateTime().getTime() > 15 * 60_000) {
-            throw new TokenException("token过期");
+                throw new TokenException("token过期");
         }
         UserToken userToken = userTokenList.get(0);
         try{

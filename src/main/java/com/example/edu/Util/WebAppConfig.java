@@ -1,12 +1,13 @@
 package com.example.edu.Util;
 
+import com.example.edu.Config.LoginInterceptorConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.*;
 
 import javax.servlet.MultipartConfigElement;
 
@@ -20,6 +21,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
      */
     @Value("${cbs.imagesPath}")
     private String mImagesPath;
+
+
+    @Autowired
+    LoginInterceptorConfig loginInterceptorConfig;
 
     @Bean
     public MultipartConfigElement multipartConfigElement(){
@@ -54,6 +59,40 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         //跨域
 //        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
         super.addResourceHandlers(registry);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        System.out.println("*************************************************************************************");
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .allowedMethods("*")
+                .maxAge(3600);
+    }
+
+    @Override
+    public void  addInterceptors(InterceptorRegistry registry) {
+        InterceptorRegistration registration= registry.addInterceptor(loginInterceptorConfig)
+                .addPathPatterns("/**");
+        registration.excludePathPatterns(
+                "/assert/**", //添加不拦截路径
+                "/open/**", //添加不拦截路径
+                "/LoginController/*",            //登录
+                "/**/error",            //登录
+                "/ExportUtils/*/*",        //静态下载
+                "/pages/**",            //html静态资源
+                "/**/*.html",            //html静态资源
+                "/**/*.js",              //js静态资源
+                "/**/*.css",             //css静态资源
+                "/**/*.woff",
+                "/**/*.jpg",
+                "/**/*.png",
+                "/**/*.gif",
+                "/**/*.ttf"
+        );
+
     }
 
 }

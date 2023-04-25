@@ -28,9 +28,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -58,11 +56,11 @@ public class LoginServiceImpl implements LoginService {
             username = RSAEncrypt.decrypt(loginUser.getUserName());
             password = RSAEncrypt.decrypt(loginUser.getPassword());
         } catch (Exception e) {
-            throw new ServiceException("登陆出错");
+           return new ResponseData(ExceptionMsg.FAILED,"用户名密码解密失败");
         }
 
         if(StringUtils.isBlank(username) || StringUtils.isBlank(password)) {
-            throw new ServiceException("用户名密码不为空");
+            return new ResponseData(ExceptionMsg.FAILED,"用户名密码不为空");
         }
         log.info("username:{}",username+"password:{}",password);
         User user = userRepository.findUserByUsername(username);
@@ -102,38 +100,43 @@ public class LoginServiceImpl implements LoginService {
             userRepository.save(user);
         }
 
+        UserLoginLog userLoginLog = new UserLoginLog();
+        userLoginLog.setLoginTime(new Timestamp(System.currentTimeMillis()));
+        userLoginLog.setIfSuccess("1");
+        userLoginLog.setRemark("登陆成功");
+        userLoginLog.setUsername(username);
 
-        userLoginLogRepository.insertLoginLog(1, username,"登陆成功");
+        userLoginLogRepository.save(userLoginLog);
 
         try {
+
             String s = PasswordEncoder.encode(user.getId() + "-" + Snowflake.getSnowflakeId());
             Integer userId = user.getId();
             Cookie cookie = new Cookie(jwtTokenUtils.getTokenHeader(), s);
             cookie.setPath("/");
             cookie.setMaxAge(-1);
             response.addCookie(cookie);
-            user.setPassword(null);
-            user.setToken(s);
-            user.setCreateTime(null);
-            user.setUserName(AESCode.encrypt(user.getUserName(), AESCode.USER_NAME_KEY));
-            user.setId(null);
-            boolean insert = true;
-            if(insert) {
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("password", null);
+            userMap.put("token", s);
+            userMap.put("createTime", null);
+            userMap.put("userName", AESCode.encrypt(user.getUserName(), AESCode.USER_NAME_KEY));
+            userMap.put("id", null);
                 UserToken userToken = new UserToken();
                 userToken.setUserId(userId);
                 userToken.setLoginFrom(from);
                 userToken.setToken(s);
                 userToken.setUpdateTime(new Timestamp(System.currentTimeMillis()));
                 userTokenRepository.save(userToken);
-            }
 
+            return new ResponseData(ExceptionMsg.SUCCESS,userMap);
         } catch (ServiceException exception) {
             throw exception;
         } catch (Exception e) {
             throw new ServiceException("登录出错");
         }
 
-        return new ResponseData(ExceptionMsg.SUCCESS,user);
+
     }
 
     @Override

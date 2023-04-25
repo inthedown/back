@@ -14,11 +14,9 @@ import com.example.edu.result.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManagerFactory;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,27 +40,22 @@ public class CourseServiceImpl implements CourseService {
     @Autowired
     private ClassesRepository classesRepository;
 
-    @Autowired
-    private EntityManagerFactory entityManagerFactory;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Override
     @Transactional
     public ResponseData getList(UserInfoDto userInfoDto) {
         List<Course> courseList = new ArrayList<>();
         //获取身份
-        String role = userInfoDto.getRole();
+        Integer role = userInfoDto.getRole();
         //获取Id
         int id = userInfoDto.getId();
-        if (role.equals("student")) {
+        if (role.equals(2)) {
             //获取学生课程列表
             courseList = courseRepository.findCourseByStudentId(id);
-        } else if (role.equals("teacher")) {
+        } else if (role.equals(3)) {
             //获取教师课程列表
             courseList = courseRepository.findCourseByTeacherId(id);
-        } else if (role.equals("admin")) {
+        } else if (role.equals(1)) {
             //获取所有课程列表
             courseList = courseRepository.findAll();
 

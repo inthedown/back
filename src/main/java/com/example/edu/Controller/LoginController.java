@@ -6,7 +6,10 @@ import com.example.edu.Form.LoginUser;
 import com.example.edu.Form.UserDto;
 import com.example.edu.Form.UserParam;
 import com.example.edu.Service.LoginService;
+import com.example.edu.Util.AESCode;
+import com.example.edu.result.ExceptionMsg;
 import com.example.edu.result.ResponseData;
+import com.example.edu.result.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
@@ -15,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -67,5 +72,22 @@ public class LoginController extends BaseController{
     public ResponseData importStu(@RequestBody @Nullable ImportDto importDto) {
 
         return loginService.importStu(importDto,getUser());
+    }
+    @GetMapping("/userinfo")
+    public ResponseData userinfo() {
+        Map<String,Object> userMap=new HashMap<>();
+        userMap.put("name",getUser().getName());
+        userMap.put("password", null);
+        userMap.put("token", getUser().getToken());
+        userMap.put("createTime", null);
+        userMap.put("role", getUser().getRoleId());
+        userMap.put("userName", AESCode.encrypt(getUser().getUserName(), AESCode.USER_NAME_KEY));
+        userMap.put("id", getUser().getId());
+        return new ResponseData(ExceptionMsg.SUCCESS,userMap);
+    }
+    @PostMapping("/1111")
+    public ResponseData updatePwd111() {
+            throw new ServiceException("token 获取失败");
+
     }
 }
