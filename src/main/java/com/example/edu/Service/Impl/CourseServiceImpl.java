@@ -1,9 +1,6 @@
 package com.example.edu.Service.Impl;
 
-import com.example.edu.Entity.Classes;
-import com.example.edu.Entity.Course;
-import com.example.edu.Entity.File;
-import com.example.edu.Entity.Session;
+import com.example.edu.Entity.*;
 import com.example.edu.Form.*;
 import com.example.edu.Repository.*;
 import com.example.edu.Service.CourseService;
@@ -39,23 +36,24 @@ public class CourseServiceImpl implements CourseService {
 
     @Autowired
     private ClassesRepository classesRepository;
-
+    @Autowired
+    private ResourceLogRepository resourceLogRepository;
 
     @Override
     @Transactional
     public ResponseData getList(UserInfoDto userInfoDto) {
         List<Course> courseList = new ArrayList<>();
         //获取身份
-        Integer role = userInfoDto.getRole();
+       String role = userInfoDto.getRole();
         //获取Id
         int id = userInfoDto.getId();
-        if (role.equals(2)) {
+        if (role.equals("stu")||role.equals("2")) {
             //获取学生课程列表
             courseList = courseRepository.findCourseByStudentId(id);
-        } else if (role.equals(3)) {
+        } else if (role.equals("tea")||role.equals("3")) {
             //获取教师课程列表
             courseList = courseRepository.findCourseByTeacherId(id);
-        } else if (role.equals(1)) {
+        } else if (role.equals("admin")||role.equals("1")) {
             //获取所有课程列表
             courseList = courseRepository.findAll();
 
@@ -85,7 +83,7 @@ public class CourseServiceImpl implements CourseService {
         return count;
     }
     @Override
-    public ResponseData getDetail(int id) {
+    public ResponseData getDetail(int id, User user) {
 
         Course c = courseRepository.findById(id).get();
         //初始化session,file
@@ -93,12 +91,12 @@ public class CourseServiceImpl implements CourseService {
         Util.initial(c.getSessions());
 //       Util.initial(c.getClasses());
         c.setSessions(c.getSessions());
-        List<CourseDetailForm> courseDetailForms = convertToJsonTree(c.getSessions(), null);
+        List<CourseDetailForm> courseDetailForms = convertToJsonTree(c.getSessions(), null,user);
         return new ResponseData(ExceptionMsg.SUCCESS, courseDetailForms);
 
     }
 
-    public List<CourseDetailForm> convertToJsonTree(List<Session> sessions, String j) {
+    public List<CourseDetailForm> convertToJsonTree(List<Session> sessions, String j,User user) {
         if (sessions == null) {
             return null;
         }
@@ -113,20 +111,25 @@ public class CourseServiceImpl implements CourseService {
             courseDetailForm.setSId(Integer.valueOf( sessions.get(i - 1).getId()));
             courseDetailForm.setName(sessions.get(i - 1).getSessionName());
             courseDetailForm.setDate(new Timestamp[]{sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()});
-            courseDetailForm.setLabel("label");
-            courseDetailForm.setCurrency("currency");
+            courseDetailForm.setLabel(Util.getLabel(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
+            courseDetailForm.setCurrency(Util.getCurrency(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
             courseDetailForm.setFileList(sessions.get(i - 1).getFiles());
             //计算当前时间在session时间段内的比例
-            courseDetailForm.setRate(Util.getRate(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
+            String scoreMsg=getVariableName(sessions.get(i-1).getId(),user);
+            String[] scoreMsgs=scoreMsg.split("_");
+            String status=scoreMsgs[0];
+            String score=scoreMsgs[1];
+
+            courseDetailForm.setRate(Float.parseFloat(score)/100);
             courseDetailForm.setStatus(Util.getStatus(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
-            courseDetailForm.setVariableName(Util.getVariableName(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
+            courseDetailForm.setVariableName(status);
             courseDetailForm.setVariableValue(0);
             courseDetailForm.setVariableUp("variableUp");
             if(sessions.get(i-1).getChildSessions()!=null){
                 if(j==null){
-                    courseDetailForm.setChildren(convertToJsonTree(sessions.get(i-1).getChildSessions(), i+""));
+                    courseDetailForm.setChildren(convertToJsonTree(sessions.get(i-1).getChildSessions(), i+"",user));
                 }else{
-                    courseDetailForm.setChildren(convertToJsonTree(sessions.get(i-1).getChildSessions(), j+"-"+ i));
+                    courseDetailForm.setChildren(convertToJsonTree(sessions.get(i-1).getChildSessions(), j+"-"+ i,user));
                 }
 
             }
@@ -135,7 +138,36 @@ public class CourseServiceImpl implements CourseService {
         }
         return courseDetailForms;
     }
-
+    //学生节点学习情况
+    public String getVariableName(int sessionId, User user) {
+        if(user.getRoleId()!=2){
+            return null;
+        }
+        int studentId = user.getId();
+        Session session =sessionRepository.getReferenceById(sessionId);
+        List<Integer> fileIds = session.getFiles().stream().map(File::getId).collect(Collectors.toList());
+        if(fileIds.size()==0){
+            return "已完成_100";
+        }
+        List<ResourceLog> resourceLogs = resourceLogRepository.findResourceLogByFileIdInAndStudentId(fileIds, studentId);
+        //遍历fileIds,找到对应的resourceLog,若没有则进度为0
+        int count = 0;
+        for (Integer fileId : fileIds) {
+            for (ResourceLog resourceLog : resourceLogs) {
+                if (resourceLog.getFile().getId() == fileId) {
+                    count+=resourceLog.getPercent();
+                }
+            }
+        }
+        count=count/fileIds.size();
+        if(count>=100){
+            return "已完成_100";
+        }else if(count>0){
+            return "进行中_"+count;
+        }else{
+            return "未开始_0";
+        }
+    }
 
     @Override
     @Transactional

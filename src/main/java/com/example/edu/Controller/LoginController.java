@@ -9,7 +9,6 @@ import com.example.edu.Service.LoginService;
 import com.example.edu.Util.AESCode;
 import com.example.edu.result.ExceptionMsg;
 import com.example.edu.result.ResponseData;
-import com.example.edu.result.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
@@ -57,7 +56,7 @@ public class LoginController extends BaseController{
 
     @PostMapping("/addUser")
     public ResponseData addUser(@RequestBody UserDto userDto) {
-        return loginService.addUser(userDto);
+        return loginService.addUser(userDto,getUser());
     }
 
     @PostMapping("/deleteUser")
@@ -85,9 +84,9 @@ public class LoginController extends BaseController{
         userMap.put("id", getUser().getId());
         return new ResponseData(ExceptionMsg.SUCCESS,userMap);
     }
-    @PostMapping("/1111")
-    public ResponseData updatePwd111() {
-            throw new ServiceException("token 获取失败");
 
+    @GetMapping("/menus")
+    public ResponseData getMenus() {
+        return loginService.getMenus(getUser());
     }
 }

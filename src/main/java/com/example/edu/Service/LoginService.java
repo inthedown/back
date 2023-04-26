@@ -17,11 +17,13 @@ public interface LoginService {
 
     ResponseData getList(UserParam userParam, User user);
 
-    ResponseData addUser(UserDto userDto);
+    ResponseData addUser(UserDto userDto,User user);
 
     ResponseData deleteUser(Integer[] ids);
 
     ResponseData seePwd(Integer id, User user);
 
     ResponseData importStu(ImportDto importDto, User user);
+
+    ResponseData getMenus(User user);
 }

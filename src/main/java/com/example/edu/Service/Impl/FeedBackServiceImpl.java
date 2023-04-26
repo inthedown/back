@@ -31,9 +31,9 @@ public class FeedBackServiceImpl implements FeedBackService {
 
     @Override
     public ResponseData getList(GetFeedBackDto getFeedBackDto , User user) {
-//        if(user==null){
-//            throw new ServiceException("用户未登录");
-//        }
+        if(user==null){
+            throw new ServiceException("用户未登录");
+        }
         String type=getFeedBackDto.getType();
         List<Map<String,Object>> commentList=null;
         switch (type){

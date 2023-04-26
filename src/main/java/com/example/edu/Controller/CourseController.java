@@ -24,7 +24,7 @@ public class CourseController extends BaseController {
     //获取课程详情
     @RequestMapping("/getDetail")
     public ResponseData getCourseDetail(int id){
-        return courseService.getDetail(id);
+        return courseService.getDetail(id,getUser());
     }
     //添加课程
     @RequestMapping("/add")

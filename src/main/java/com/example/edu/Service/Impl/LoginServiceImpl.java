@@ -1,5 +1,7 @@
 package com.example.edu.Service.Impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.example.edu.Config.LoginInterceptorConfig;
 import com.example.edu.Entity.*;
 import com.example.edu.Form.ImportDto;
@@ -71,31 +73,30 @@ public class LoginServiceImpl implements LoginService {
 
         if(user == null ||StringUtils.isBlank(user.getPassword()) || !user.getPassword().equals(PasswordEncoder.encode(password))) {
 
-            String errorMsg = "用户名或密码错误";
-            if(user != null) {
-                userLoginLogRepository.insertLoginLog(0, username,"用户名或密码错误");
-                Integer loginErrorTimes = user.getLoginErrorTimes().intValue();
+            userLoginLogRepository.insertLoginLog(0, username,"用户名或密码错误");
+            throw new ServiceException("用户名或密码错误");
+        } else  if(user != null) {
 
-                if(!user.getRoleId().equals(loginUser.getRoleId())){
-                    throw new ServiceException("角色错误");
-                }
-                if(loginErrorTimes == 0) {
-                    user.setLockTime(new Timestamp(System.currentTimeMillis()));
-                } else if((System.currentTimeMillis() - user.getLockTime().getTime()) >= 5 * 60 * 1000 ) {
-                    loginErrorTimes = 0;
-                    user.setLockTime(new Timestamp(System.currentTimeMillis()));
-                }
+            Integer loginErrorTimes = user.getLoginErrorTimes().intValue();
 
-                user.setLoginErrorTimes(loginErrorTimes + 1);
-                userRepository.save(user);
-
-                if(loginErrorTimes == 4) {
-                    errorMsg = "用户已被锁定";
-                }
+            if(!user.getRoleId().equals(loginUser.getRole   ())){
+                throw new ServiceException("角色错误");
+            }
+            if(loginErrorTimes == 0) {
+                user.setLockTime(new Timestamp(System.currentTimeMillis()));
+            } else if((System.currentTimeMillis() - user.getLockTime().getTime()) >= 5 * 60 * 1000 ) {
+                loginErrorTimes = 0;
+                user.setLockTime(new Timestamp(System.currentTimeMillis()));
             }
 
-            throw new ServiceException(errorMsg);
-        } else { //登录成功则解锁
+            user.setLoginErrorTimes(loginErrorTimes + 1);
+            userRepository.save(user);
+
+            if(loginErrorTimes == 4) {
+                throw new ServiceException("用户已被锁定");
+            }
+
+        }else{ //登录成功则解锁
             user.setLoginErrorTimes(0);
             userRepository.save(user);
         }
@@ -178,11 +179,11 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
-    public ResponseData addUser(UserDto userDto) {
-//        if(userDto.getRole().equals(1)) {
-//            throw new ServiceException("无权限");
-//        }
-        log.info("userDto:{}",userDto);
+    public ResponseData addUser(UserDto userDto,User user1) {
+        if(user1.getRoleId()!=1) {
+            throw new ServiceException("无权限");
+        }
+
         if(userRepository.findUserByUsername(userDto.getUserName()) != null) {
             throw new ServiceException("用户名已存在");
         }else{
@@ -217,9 +218,9 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseData seePwd(Integer id, User user) {
-//        if(user.getRoleId()!=1) {
-//            throw new ServiceException("无权限");
-//        }
+        if(user.getRoleId()!=1) {
+            throw new ServiceException("无权限");
+        }
         User user1 = userRepository.findById(id).get();
         return new ResponseData(ExceptionMsg.SUCCESS,PasswordEncoder.decode(user1.getPassword()));
 
@@ -237,9 +238,9 @@ public class LoginServiceImpl implements LoginService {
     private ClassesRepository classesRepository;
     @Override
     public ResponseData importStu(ImportDto importDto,User user) {
-//        if(user.getRoleId()!=1) {
-//            throw new ServiceException("无权限");
-//        }
+        if(user.getRoleId()!=1) {
+            throw new ServiceException("无权限");
+        }
         List<Integer> stuIds =importDto.getStuIds();
         if (stuIds == null || stuIds.size() == 0) {
             return new ResponseData(ExceptionMsg.FAILED,"学生不能为空");
@@ -257,4 +258,53 @@ public class LoginServiceImpl implements LoginService {
         stuRepository.saveAll(students);
         return new ResponseData(ExceptionMsg.SUCCESS,"导入成功");
     }
+
+    @Override
+    public ResponseData getMenus(User user) {
+        int roleId = user.getRoleId();
+
+        JSONObject adminMenu=new JSONObject();
+        adminMenu.put("name","user");
+        JSONArray adminChildren=new JSONArray();
+        JSONObject claManMenu=new JSONObject(Map.of("name","classesList"));
+        JSONObject couManMenu=new JSONObject(Map.of("name","courseList"));
+        JSONObject userManMenu=new JSONObject(Map.of("name","userList"));
+        adminChildren.add(claManMenu);
+        adminChildren.add(couManMenu);
+        adminChildren.add(userManMenu);
+        adminMenu.put("children",adminChildren);
+
+        JSONObject stuMenu=new JSONObject();
+        stuMenu.put("name","course");
+        JSONArray stuChildren=new JSONArray();
+        JSONObject stuInfoMenu=new JSONObject(Map.of("name","course"));
+        JSONObject stuScoreMenu=new JSONObject(Map.of("name","courseDetail"));
+        stuChildren.add(stuInfoMenu);
+        stuChildren.add(stuScoreMenu);
+        stuMenu.put("children",stuChildren);
+
+        JSONObject teaMenu=new JSONObject();
+        teaMenu.put("name","course");
+        JSONArray teaChildren=new JSONArray();
+        JSONObject teaInfoMenu=new JSONObject(Map.of("name","course"));
+        JSONObject teaCMenu=new JSONObject(Map.of("name","courseAdd"));
+        JSONObject teaDetailMenu=new JSONObject(Map.of("name","courseDetail"));
+        teaChildren.add(teaInfoMenu);
+        teaChildren.add(teaCMenu);
+        teaChildren.add(teaDetailMenu);
+        teaMenu.put("children",teaChildren);
+
+        switch (roleId) {
+            case 1:
+                return new ResponseData(ExceptionMsg.SUCCESS,Arrays.asList(adminMenu));
+            case 2:
+                return new ResponseData(ExceptionMsg.SUCCESS,Arrays.asList(stuMenu));
+            case 3:
+                return new ResponseData(ExceptionMsg.SUCCESS,Arrays.asList(teaMenu));
+            default:
+                return new ResponseData(ExceptionMsg.SUCCESS,null);
+        }
+
+    }
 }
+

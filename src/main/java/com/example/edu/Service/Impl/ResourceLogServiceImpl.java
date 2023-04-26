@@ -1,9 +1,6 @@
 package com.example.edu.Service.Impl;
 
-import com.example.edu.Entity.File;
-import com.example.edu.Entity.ResourceLog;
-import com.example.edu.Entity.Session;
-import com.example.edu.Entity.StuCourceManage;
+import com.example.edu.Entity.*;
 import com.example.edu.Form.UserResourceLogForm;
 import com.example.edu.Repository.*;
 import com.example.edu.Service.ResourceLogService;
@@ -40,7 +37,10 @@ public class ResourceLogServiceImpl implements ResourceLogService {
     @Autowired
     private CourseRepository courseRepository;
     @Override
-    public void add(UserResourceLogForm logForm) {
+    public void add(UserResourceLogForm logForm, User user) {
+        if(user.getRoleId()!=2){
+            return;
+        }
         Integer userId = Optional.ofNullable(logForm.getUserId())
                 .orElseThrow(() -> {
                     throw new ServiceException("用户id为空");

@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("resourceLog")
-public class ResourceLogController {
+public class ResourceLogController extends BaseController{
     @Autowired
     private ResourceLogService resourceLogService;
 
     @PostMapping( "/add")
     public ResponseData add(@RequestBody UserResourceLogForm logForm){
-        resourceLogService.add(logForm);
+        resourceLogService.add(logForm,getUser());
         return new ResponseData(ExceptionMsg.SUCCESS);
     }
 

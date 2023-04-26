@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 public class UserInfoDto {
 
         private final int id;
-        private final Integer role;
+        private final String role;
         private final String name;
         private final String username;
         private final String password;

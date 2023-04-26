@@ -11,4 +11,5 @@ public interface FileRepository extends JpaRepository<File,Integer> {
     File findFileByUid(String uid);
     @Query(value = "select * from file where session_id = ?1",nativeQuery = true)
     List<File> findBySessionId(int id);
+
 }

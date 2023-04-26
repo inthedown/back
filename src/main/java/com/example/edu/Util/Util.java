@@ -5,10 +5,12 @@ import org.hibernate.Hibernate;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.List;
 
 public  class Util {
+
     public static <T, S> void map(T dto, S entity) throws IllegalAccessException {
         Class<?> dtoClass = dto.getClass();
         Class<?> entityClass = entity.getClass();
@@ -81,16 +83,33 @@ public  class Util {
             return "G";
         }
     }
-    public static String getVariableName(Timestamp startTime, Timestamp endTime) {
+
+    public static String getCurrency(Timestamp startTime,Timestamp endTime){
         long now = System.currentTimeMillis();
         long start = startTime.getTime();
         long end = endTime.getTime();
         if (now < start) {
-            return "未开始";
+            return "开始";
         } else if (now > end) {
-            return "已完成";
+            return "已结束";
         } else {
-            return "进行中";
+            return "结束";
         }
+    }
+    public static String getLabel(Timestamp startTime,Timestamp endTime){
+        long now = System.currentTimeMillis();
+        long start = startTime.getTime();
+        long end = endTime.getTime();
+        if (now < start) {
+            return formatDate(startTime);
+        } else if (now > end) {
+           int days= (int) Math.ceil((now - end) / (1000 * 60 * 60 * 24));
+            return days+"天";
+        } else {
+            return formatDate(endTime)  ;
+        }
+    }
+    public static String formatDate(Timestamp timestamp){
+        return new SimpleDateFormat("MM-dd").format(timestamp);
     }
 }
