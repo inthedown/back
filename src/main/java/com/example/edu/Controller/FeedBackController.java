@@ -5,10 +5,7 @@ import com.example.edu.Form.GetFeedBackDto;
 import com.example.edu.Service.FeedBackService;
 import com.example.edu.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -26,4 +23,9 @@ public class FeedBackController extends BaseController{
     public ResponseData add(@RequestBody AddFeedBackDto addFeedBackDto){
         return feedBackService.add(addFeedBackDto);
     }
+    @GetMapping("/getBackMsg")
+    public ResponseData getBackMsg(){
+        return feedBackService.getBackMsg(getUser());
+    }
+
 }

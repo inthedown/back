@@ -158,9 +158,9 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseData getList(UserParam userParam, User user) {
-//        if(user.getRoleId()!=1) {
-//            throw new ServiceException("无权限");
-//        }
+        if(user.getRoleId()!=1) {
+            throw new ServiceException("无权限");
+        }
         int current =0;
         int size = 10;
         String userName = null;
@@ -175,7 +175,10 @@ public class LoginServiceImpl implements LoginService {
         Pageable pageable = PageRequest.of(current, size);
         Page<User> page = userRepository.findByParam(userName,role,pageable);
         List<User> list = page.getContent();
-        return new ResponseData(ExceptionMsg.SUCCESS,list);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("total",page.getTotalElements());
+        jsonObject.put("list",list);
+        return new ResponseData(ExceptionMsg.SUCCESS,jsonObject);
     }
 
     @Override

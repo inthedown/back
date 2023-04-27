@@ -14,5 +14,7 @@ public class UserInfoDto {
         private final String password;
         private final String token;
         private final Timestamp createTime;
+        private final Integer current;
+        private final Integer size;
 
 }

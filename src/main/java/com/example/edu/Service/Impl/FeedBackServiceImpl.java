@@ -55,7 +55,6 @@ public class FeedBackServiceImpl implements FeedBackService {
     @Override
     public ResponseData add(AddFeedBackDto addFeedBackDto) {
         Comment comment = new Comment();
-        log.info("addFeedBackDto:"+addFeedBackDto.toString());
         comment.setSession(Optional.ofNullable( sessionRepository.findById( addFeedBackDto.getSId())).get().orElseThrow(()->new ServiceException("课程节点不存在")));
         comment.setUserFrom(Optional.ofNullable( userRepository.findById( addFeedBackDto.getUserFromId())).get().orElseThrow(()->new ServiceException("用户不存在")));
         comment.setUserTo(Optional.ofNullable( userRepository.findById( addFeedBackDto.getUserToId())).get().orElseThrow(()->new ServiceException("用户不存在")));
@@ -63,5 +62,17 @@ public class FeedBackServiceImpl implements FeedBackService {
         comment.setTime(new Timestamp(System.currentTimeMillis()));
         commentRepository.save(comment);
         return new ResponseData(ExceptionMsg.SUCCESS,"添加成功");
+    }
+
+    @Override
+    public ResponseData getBackMsg(User user) {
+        if(user.getRoleId()==1){
+            return new ResponseData(ExceptionMsg.SUCCESS);
+        }else if(user.getRoleId()==2||user.getRoleId()==3){
+            List<Map<String,Object>> comments=commentRepository.findBackById(user.getId());
+            return new ResponseData(ExceptionMsg.SUCCESS,comments);
+        }
+
+        return new ResponseData(ExceptionMsg.SUCCESS,null);
     }
 }

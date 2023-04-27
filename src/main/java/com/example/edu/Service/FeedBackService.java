@@ -9,4 +9,6 @@ public interface FeedBackService {
     ResponseData getList(GetFeedBackDto getFeedBackDto, User user);
 
     ResponseData add(AddFeedBackDto addFeedBackDto);
+
+    ResponseData getBackMsg(User user);
 }

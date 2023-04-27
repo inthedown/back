@@ -18,8 +18,7 @@ public class Student extends User {
     @Column(name = "grade")
     private String grade;
 
-    //q:toString()出现循环引用
-    //a:在Student类中加入注解@JsonBackReference
+
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "classes_id")

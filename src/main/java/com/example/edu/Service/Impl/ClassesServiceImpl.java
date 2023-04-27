@@ -1,5 +1,6 @@
 package com.example.edu.Service.Impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.edu.Entity.Classes;
 import com.example.edu.Entity.User;
 import com.example.edu.Form.ClassesDto;
@@ -93,7 +94,9 @@ public class ClassesServiceImpl implements ClassesService {
             map.put("courseNum",classes.getCourses().size());
             list1.add(map);
         });
-
-        return new ResponseData(ExceptionMsg.SUCCESS, list);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("list",list1);
+        jsonObject.put("total",page.getTotalElements());
+        return new ResponseData(ExceptionMsg.SUCCESS, jsonObject);
     }
 }

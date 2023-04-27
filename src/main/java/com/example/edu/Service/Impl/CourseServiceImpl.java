@@ -11,6 +11,9 @@ import com.example.edu.result.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +71,15 @@ public class CourseServiceImpl implements CourseService {
             courseFrontDtos.add(courseFrontDto);
 
         });
-        return new ResponseData(ExceptionMsg.SUCCESS, courseFrontDtos);
+        int total = courseFrontDtos.size();
+        int start = (userInfoDto.getCurrent() - 1) * userInfoDto.getSize();
+        int end = Math.min(start + userInfoDto.getSize(), total);
+
+        List<CourseFrontDto> pageList = courseFrontDtos.subList(start, end);
+
+        Page<CourseFrontDto> page = new PageImpl<>(pageList, PageRequest.of(userInfoDto.getCurrent() - 1, userInfoDto.getSize()), total);
+
+        return new ResponseData(ExceptionMsg.SUCCESS, page);
     }
 
     //统计session数量
@@ -139,10 +150,8 @@ public class CourseServiceImpl implements CourseService {
         return courseDetailForms;
     }
     //学生节点学习情况
-    public String getVariableName(int sessionId, User user) {
-        if(user.getRoleId()!=2){
-            return null;
-        }
+    public String getVariableName(int sessionId,  User user) {
+
         int studentId = user.getId();
         Session session =sessionRepository.getReferenceById(sessionId);
         List<Integer> fileIds = session.getFiles().stream().map(File::getId).collect(Collectors.toList());
@@ -230,7 +239,7 @@ public class CourseServiceImpl implements CourseService {
                 .map(fileDto -> {
                     File aFile = fileRepository.findFileByUid(fileDto.getUid());
                     if (aFile != null) {
-                        System.out.println("fileName" + aFile.getName() + "sessionId" + session.getSessionName());
+                      //  System.out.println("fileName" + aFile.getName() + "sessionId" + session.getSessionName());
                         aFile.setSession(session);
                         return aFile;
                     } else {
