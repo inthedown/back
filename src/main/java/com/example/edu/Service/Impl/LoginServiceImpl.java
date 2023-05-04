@@ -123,12 +123,12 @@ public class LoginServiceImpl implements LoginService {
             userMap.put("createTime", null);
             userMap.put("userName", AESCode.encrypt(user.getUserName(), AESCode.USER_NAME_KEY));
             userMap.put("id", null);
-                UserToken userToken = new UserToken();
-                userToken.setUserId(userId);
-                userToken.setLoginFrom(from);
-                userToken.setToken(s);
-                userToken.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-                userTokenRepository.save(userToken);
+            UserToken userToken = new UserToken();
+            userToken.setUserId(userId);
+            userToken.setLoginFrom(from);
+            userToken.setToken(s);
+            userToken.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+            userTokenRepository.save(userToken);
 
             return new ResponseData(ExceptionMsg.SUCCESS,userMap);
         } catch (ServiceException exception) {

@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "file", schema = "boe")
-@JsonIgnoreProperties(value = { "resourceLogs"})
+@JsonIgnoreProperties(value = { "resourceLogs","relative_path"})
 public class File {
 
     @Id

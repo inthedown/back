@@ -75,13 +75,14 @@ public  class Util {
         long now = System.currentTimeMillis();
         long start = startTime.getTime();
         long end = endTime.getTime();
-        if (now < start) {
-            return "B";
-        } else if (now > end) {
-            return "W";
-        } else {
-            return "G";
-        }
+//        if (now < start) {
+//            return "B";
+//        } else if (now > end) {
+//            return "W";
+//        } else {
+//            return "G";
+//        }
+        return "B";
     }
 
     public static String getCurrency(Timestamp startTime,Timestamp endTime){

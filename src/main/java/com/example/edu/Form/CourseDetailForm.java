@@ -18,7 +18,7 @@ public class CourseDetailForm {
     private float rate;//进度百分比
     private String status;//课程状态 进度条颜色
     private String variableName;//课程状态 文字描述 例如：已完成,进行中,未开始
-    private Integer variableValue;//课程状态 数字描述 例如：1,2,3
+    private Float variableValue;//课程状态 数字描述 例如：1,2,3
     private String variableUp;//三角形方向
     private List<CourseDetailForm> children;//子节点
 }

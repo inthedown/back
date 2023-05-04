@@ -14,7 +14,7 @@ public class DataVisualController extends BaseController{
     private VisualService visualService;
 
     @GetMapping("/getCourseStatus")
-    public ResponseData upload(){
+    public ResponseData getStatus(){
         return visualService.getStatus(getUser());
     }
 

@@ -72,14 +72,23 @@ public class CourseServiceImpl implements CourseService {
 
         });
         int total = courseFrontDtos.size();
-        int start = (userInfoDto.getCurrent() - 1) * userInfoDto.getSize();
-        int end = Math.min(start + userInfoDto.getSize(), total);
+        int start = 0;
+        int end = total;
 
-        List<CourseFrontDto> pageList = courseFrontDtos.subList(start, end);
+        if (userInfoDto.getCurrent() != null && userInfoDto.getSize() != null) {
+            start = (userInfoDto.getCurrent() - 1) * userInfoDto.getSize();
+            end = Math.min(start + userInfoDto.getSize(), total);
+            List<CourseFrontDto> pageList = courseFrontDtos.subList(start, end);
+            Page<CourseFrontDto> page = new PageImpl<>(pageList, PageRequest.of(userInfoDto.getCurrent() - 1, userInfoDto.getSize()), total);
+            return new ResponseData(ExceptionMsg.SUCCESS, page);
+        }else{
+            List<CourseFrontDto> pageList = courseFrontDtos.subList(start, end);
+            Page<CourseFrontDto> page = new PageImpl<>(pageList, PageRequest.of(0, total), total);
+            return new ResponseData(ExceptionMsg.SUCCESS, page);
+        }
 
-        Page<CourseFrontDto> page = new PageImpl<>(pageList, PageRequest.of(userInfoDto.getCurrent() - 1, userInfoDto.getSize()), total);
 
-        return new ResponseData(ExceptionMsg.SUCCESS, page);
+
     }
 
     //统计session数量
@@ -99,11 +108,11 @@ public class CourseServiceImpl implements CourseService {
         Course c = courseRepository.findById(id).get();
         //初始化session,file
         Util.initial(c);
-        Util.initial(c.getSessions());
-//       Util.initial(c.getClasses());
-        c.setSessions(c.getSessions());
+                //Util.initial(c.getSessions());
+        //       Util.initial(c.getClasses());
+               // c.setSessions(c.getSessions());
         List<CourseDetailForm> courseDetailForms = convertToJsonTree(c.getSessions(), null,user);
-        return new ResponseData(ExceptionMsg.SUCCESS, courseDetailForms);
+        return new ResponseData(ExceptionMsg.SUCCESS, courseDetailForms.get(0));
 
     }
 
@@ -134,7 +143,7 @@ public class CourseServiceImpl implements CourseService {
             courseDetailForm.setRate(Float.parseFloat(score)/100);
             courseDetailForm.setStatus(Util.getStatus(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
             courseDetailForm.setVariableName(status);
-            courseDetailForm.setVariableValue(0);
+            courseDetailForm.setVariableValue(Float.parseFloat(score)/100);
             courseDetailForm.setVariableUp("variableUp");
             if(sessions.get(i-1).getChildSessions()!=null){
                 if(j==null){
@@ -150,8 +159,11 @@ public class CourseServiceImpl implements CourseService {
         return courseDetailForms;
     }
     //学生节点学习情况
-    public String getVariableName(int sessionId,  User user) {
+    public String   getVariableName(int sessionId,  User user) {
 
+        if(user.getRoleId()!=2){
+            return "已完成_100";
+        }
         int studentId = user.getId();
         Session session =sessionRepository.getReferenceById(sessionId);
         List<Integer> fileIds = session.getFiles().stream().map(File::getId).collect(Collectors.toList());
