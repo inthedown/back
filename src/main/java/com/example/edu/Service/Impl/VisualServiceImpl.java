@@ -1,10 +1,13 @@
 package com.example.edu.Service.Impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.edu.Entity.*;
 import com.example.edu.Repository.*;
 import com.example.edu.Service.VisualService;
 import com.example.edu.result.ExceptionMsg;
 import com.example.edu.result.ResponseData;
+import com.example.edu.result.ServiceException;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,7 +61,6 @@ public class VisualServiceImpl implements VisualService {
         if (user.getRoleId() == 2) {
             return null;
         }
-        List<Map<String,Object>> list = new ArrayList<>();
 
         // 获取当前时间
         Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -74,6 +76,7 @@ public class VisualServiceImpl implements VisualService {
         }
 
         List<Timestamp> lists = userLoginLogRepository.findLoginTimeByUsernamesAndDateAfter(usernames, oneMonthAgo);
+        List<Map<String, Object>> list = new ArrayList<>();
         for (int i = 0; i < lists.size(); i++) {
             Timestamp timestamp = lists.get(i);
             String time = new Random().nextBoolean() ? "long" : "short";
@@ -138,5 +141,150 @@ public class VisualServiceImpl implements VisualService {
 
     public List<Map<String, Object>> getAdminMsg() {
         return null;
+    }
+
+    /**
+     *  nodes: [
+     *           {
+     *             id: "数据库原理",
+     *             label: "数据库原理",
+     *             donutAttrs: {
+     *               income: 4,
+     *               outcome: 12,
+     *               unknown: 22,
+     *             },
+     *           },
+     *           {
+     *             id: "范式",
+     *             label: "范式",
+     *             donutAttrs: {
+     *               income: 4,
+     *               outcome: 32,
+     *               unknown: 12,
+     *             },
+     *           },
+     *           {
+     *             id: "mysql",
+     *             label: "mysql",
+     *             donutAttrs: {
+     *               income: 12,
+     *               outcome: 22,
+     *               unknown: 2,
+     *             },
+     *           },
+     *           {
+     *             id: "关系型数据库",
+     *             label: "关系型数据库",
+     *             donutAttrs: {
+     *               income: 12,
+     *               outcome: 12,
+     *               unknown: 22,
+     *             },
+     *           },
+     *           {
+     *             id: "非关系型数据库",
+     *             label: "非关系型数据库",
+     *             donutAttrs: {
+     *               income: 14,
+     *               outcome: 2,
+     *               unknown: 22,
+     *             },
+     *           },
+     *         ],
+     *         edges: [
+     *           { source: "数据库原理", target: "范式", size: 10 },
+     *           { source: "范式", target: "mysql", size: 5 },
+     *           { source: "范式", target: "关系型数据库", size: 20 },
+     *           { source: "关系型数据库", target: "非关系型数据库", size: 5 },
+     *         ],
+     * @param courseId
+     * @param user
+     * @return
+     */
+    @Override
+    public ResponseData getDonutMap(int courseId, User user) {
+        if(user.getRoleId() == 2) {
+            return null;
+        }
+        if(Integer.valueOf(courseId).equals(null)){
+            if(user.getRoleId() == 1){
+                List<Integer> ids = courseRepository.findAll().stream().map(Course::getId).toList();
+                //随机取一个id
+                int id = ids.get(new Random().nextInt(ids.size()));
+                return getDonutMap(id, user);
+            }else{
+                List<Integer> ids = courseRepository.findCourseByTeacherId(user.getId()).stream().map(Course::getId).toList();
+                //随机取一个id
+                int id = ids.get(new Random().nextInt(ids.size()));
+                return getDonutMap(id, user);
+            }
+        }
+        //获取课程的所有节点
+        Course course=Optional.ofNullable( courseRepository.findById(courseId)).get().orElseThrow(()->new ServiceException("课程不存在"));
+        List<Session> sessions = course.getSessions();
+        List<Map<String,Object>> nodes = new ArrayList<>();
+        List<Map<String,Object>> edges = new ArrayList<>();
+        List<Integer> studentIds=stuRepository.findStuByCourseId(course.getId()).stream().map(Student::getId).toList();
+        for (Session session : sessions) {
+            Map<String,Object> node = new HashMap<>();
+            node.put("id",session.getId());
+            node.put("label",session.getSessionName());
+            DonutAttrs donutAttrs = getState(session.getId(),studentIds);
+            node.put("donutAttrs",donutAttrs);
+            nodes.add(node);
+            if(session.getChildSessions()!=null){
+                for (Session session1:session.getChildSessions()){
+                    Map<String,Object> node1 = new HashMap<>();
+                    node1.put("id",session1.getId());
+                    node1.put("label",session1.getSessionName());
+                    DonutAttrs donutAttrs1 = getState(session1.getId(),studentIds);
+                    node1.put("donutAttrs",donutAttrs1);
+                    nodes.add(node1);
+                    Map<String,Object> edge = new HashMap<>();
+                    edge.put("source",session.getId());
+                    edge.put("target",session1.getId());
+                    edge.put("size",donutAttrs.outcome-donutAttrs1.outcome);
+                    edges.add(edge);
+                }
+            }
+        }
+        JSONObject json = new JSONObject();
+        json.put("nodes",nodes);
+        json.put("edges",edges);
+
+        return new ResponseData(ExceptionMsg.SUCCESS,json);
+    }
+
+    private DonutAttrs getState(int sessionId, List<Integer> studentIds) {
+        DonutAttrs donutAttrs = new DonutAttrs();
+        Session session = Optional.ofNullable(sessionRepository.findById(sessionId)).get().orElseThrow(()->new ServiceException("session不存在"));
+        List<File> files = session.getFiles();
+        for (File file : files) {
+            for (ResourceLog resourceLog : file.getResourceLogs()) {
+                if (studentIds.contains(resourceLog.getUser().getId())) {
+                    //学生id包含在内
+                    if (resourceLog.getStatus().equals("已完成")) {
+                        donutAttrs.outcome++;
+                    }else if(resourceLog.getStatus().equals("未完成")){
+                        donutAttrs.unknown++;
+                    }else{
+                        donutAttrs.income++;
+                    }
+                }
+            }
+        }
+        return donutAttrs;
+    }
+}
+@Data
+class DonutAttrs{
+     int income;
+    int outcome;
+     int unknown;
+
+    public DonutAttrs() {
+        this.income = 0;
+        this.outcome = 0;
+        this.unknown = 0;
     }
 }

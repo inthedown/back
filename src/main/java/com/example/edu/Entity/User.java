@@ -42,7 +42,7 @@ public class User {
     @Column(name = "email")
     private String email;
     /**
-     * 1: 管理员，2:普通用户
+     * 1: 管理员，2:学生, 3:教师
      *
      * @mbg.generated Tue Mar 02 11:52:41 CST 2021
      */

@@ -9,4 +9,6 @@ public interface VisualService {
     ResponseData getActiveMap(User user);
 
     ResponseData getMap(User user);
+
+    ResponseData getDonutMap(int courseId, User user);
 }

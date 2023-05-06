@@ -14,4 +14,7 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
     @Query("select s from Student s " +
             "where s.classes in (select c.classes from Course c where c.teacher.id=?1)")
     List<Student> findStuByTeaId(Integer id);
+    @Query("select s from Student s " +
+            "where s.classes in (select c.classes from Course c where c.id=?1)")
+    List<Student> findStuByCourseId(Integer id);
 }

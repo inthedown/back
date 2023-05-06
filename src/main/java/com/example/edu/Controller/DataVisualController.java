@@ -3,7 +3,9 @@ package com.example.edu.Controller;
 import com.example.edu.Service.VisualService;
 import com.example.edu.result.ResponseData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,5 +28,11 @@ public class DataVisualController extends BaseController{
     @GetMapping("/getMap")
     public ResponseData getMap(){
         return visualService.getMap(getUser());
+    }
+
+
+    @GetMapping("/getDonutMap/{courseId}")
+    public ResponseData getDonutMap(@PathVariable("courseId") @Nullable int courseId){
+        return visualService.getDonutMap(courseId,getUser());
     }
 }
