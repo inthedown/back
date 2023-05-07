@@ -49,19 +49,23 @@ public class ResourceLogServiceImpl implements ResourceLogService {
                 .orElseThrow(()->{
                     throw new ServiceException("文件id为空");
                 });
-        ResourceLog resourceLog=resourceLogRepository.findByUserIdAndFileId(userId,fileId);
-        if(resourceLog==null) {
+        ResourceLog resourceLog = resourceLogRepository.findByUserIdAndFileId(userId, fileId);
+        if (resourceLog == null) {
             resourceLog = new ResourceLog();
-            resourceLog.setPercent(logForm.getPlayedPercentage());
             resourceLog.setFile(fileRepository.getReferenceById(fileId));
             resourceLog.setUser(userRepository.getReferenceById(userId));
-            resourceLog.setStatus(logForm.getPlayedPercentage()<100?"未完成":"已完成");
-            resourceLog.setTime(new Timestamp(System.currentTimeMillis()));
-        }else{
-            resourceLog.setPercent(logForm.getPlayedPercentage());
-            resourceLog.setTime(new Timestamp(System.currentTimeMillis()));
-            resourceLog.setStatus(logForm.getPlayedPercentage()<100?"未完成":"已完成");
+        }else if(resourceLog.getStatus().equals("已完成")){
+            return;
         }
+        if (logForm.getFileInfo().getType().equals("图片")) {
+            float time = (float) ((logForm.getEndTime() - logForm.getStartTime()) / 1000);
+            resourceLog.setPercent((float) (time / (60 * 5)));
+        } else {
+            resourceLog.setPercent(logForm.getPlayedPercentage() / 100f);
+        }
+        resourceLog.setTime(new Timestamp(System.currentTimeMillis()));
+        resourceLog.setStatus(resourceLog.getPercent() < 1 ? "未完成" : "已完成");
+
         resourceLogRepository.save(resourceLog);
 
     }
@@ -73,18 +77,10 @@ public class ResourceLogServiceImpl implements ResourceLogService {
         if(sessionList!=null){
             double count=0;
             for(Session session:sessionList){
-               List<File> files=fileRepository.findBySessionId(session.getId());
-                if(files!=null){
-                     for(File file:files){
-                          ResourceLog resourceLog=resourceLogRepository.findByUserIdAndFileId(userId,file.getId());
-                          if(resourceLog!=null){
-                            percents.add(Map.of(resourceLog.getFile().getType(),resourceLog.getPercent()));
-
-                          }
-                     }
-                }
+               percents.addAll(sessionScore(userId,session.getId()));
             }
             if(percents.size()!=0){
+                log.info("percents:{}",percents);
                 //加权计算,视频权重为0.4，音频权重为0.3,文档权重为0.3
                 for(Map<String,Float> percent:percents){
                     for(Map.Entry<String,Float> entry:percent.entrySet()){
@@ -117,4 +113,28 @@ public class ResourceLogServiceImpl implements ResourceLogService {
         return new ResponseData(ExceptionMsg.FAILED,"该课程没有节点");
     }
 
+    public List<Map<String,Float>> sessionScore(Integer userId,Integer sessionId){
+        List<Map<String,Float>> percents=new ArrayList<>();
+        Session session=sessionRepository.getReferenceById(sessionId);
+        List<File> files=session.getFiles();
+        if(files!=null){
+            for(File file:files){
+                ResourceLog resourceLog=resourceLogRepository.findByUserIdAndFileId(userId,file.getId());
+                if(resourceLog!=null){
+                    percents.add(Map.of(resourceLog.getFile().getType(),resourceLog.getPercent()));
+                }else{
+                    percents.add(Map.of(file.getType(),(float)0));
+                }
+            }
+        }
+        if(session.getChildSessions()!=null){
+            for(Session childSession:session.getChildSessions()){
+                List<Map<String,Float>> childPercents=sessionScore(userId,childSession.getId());
+               if(childPercents!=null){
+                   percents.addAll(childPercents);
+               }
+            }
+        }
+        return percents;
+    }
 }

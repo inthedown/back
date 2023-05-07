@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 
 @Data
 @Entity
-@Table(name = "resource_log", schema = "boe")
+@Table(name = "resource_log", schema = "edu")
 @JsonIgnoreProperties(value = {"file", "user"})
 public class ResourceLog {
     @Id

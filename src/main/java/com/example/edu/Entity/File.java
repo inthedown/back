@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Data
-@Table(name = "file", schema = "boe")
+@Table(name = "file", schema = "edu")
 @JsonIgnoreProperties(value = { "resourceLogs","relative_path"})
 public class File {
 
@@ -29,10 +29,10 @@ public class File {
     @Column(name = "url")
     private String url;
     @Basic
-    @Column(name = "resolution ")
+    @Column(name = "resolution")
     private String resolution ;
     @Basic
-    @Column(name = "type ")
+    @Column(name = "type")
     private String type ;
     @Basic
     @Column(name = "size")

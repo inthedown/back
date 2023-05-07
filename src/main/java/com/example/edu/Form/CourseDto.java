@@ -13,7 +13,6 @@ public class CourseDto {
     private String name;
     private String classes;
     private int teacherId;
-
     @Nullable
     private SessionDto data;
 

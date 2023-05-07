@@ -133,6 +133,7 @@ public class CourseServiceImpl implements CourseService {
             courseDetailForm.setDate(new Timestamp[]{sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()});
             courseDetailForm.setLabel(Util.getLabel(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
             courseDetailForm.setCurrency(Util.getCurrency(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
+
             courseDetailForm.setFileList(sessions.get(i - 1).getFiles());
             //计算当前时间在session时间段内的比例
             String scoreMsg=getVariableName(sessions.get(i-1).getId(),user);
@@ -233,8 +234,6 @@ public class CourseServiceImpl implements CourseService {
         Course course = new Course();
         course.setCourseName(courseDto.getName());
         course.setTeacher(teaRepository.findById(courseDto.getTeacherId()).orElseThrow(() -> new ServiceException("教师不存在")));
-
-
         Session session = convertToSession(courseDto.getData());
         session.setCourse(course);
         course.setSessions(Collections.singletonList(session));
@@ -275,7 +274,6 @@ public class CourseServiceImpl implements CourseService {
             session.setStartTime(null);
             session.setEndTime(null);
         }
-
         List<Session> childSessions = Optional.ofNullable(sessionDto.getChildren())
                 .orElse(Collections.emptyList())
                 .stream()
@@ -283,10 +281,7 @@ public class CourseServiceImpl implements CourseService {
                 .peek(childSession -> childSession.setParentSession(session))
                 .collect(Collectors.toList());
         session.setChildSessions(childSessions);
-
-
         return session;
-
     }
 
     @Override

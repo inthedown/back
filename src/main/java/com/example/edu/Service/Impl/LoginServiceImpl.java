@@ -215,7 +215,9 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public ResponseData deleteUser(Integer[] ids) {
         //jpa批量删除
-        userRepository.deleteByIdIn(Arrays.asList(ids));
+        Arrays.stream(ids).forEach(id -> {
+            userRepository.deleteById(id);
+        });
         return new ResponseData(ExceptionMsg.SUCCESS);
     }
 

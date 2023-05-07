@@ -48,12 +48,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
             }else if(imagesPath.indexOf("classes")>0){
                 imagesPath = "file:"+imagesPath.substring(0, imagesPath.indexOf("classes"));
             }
-            imagesPath = imagesPath.substring(0, imagesPath.lastIndexOf("/"))+"/images/";
+            imagesPath = imagesPath.substring(0, imagesPath.lastIndexOf("/"))+"/res/";
             mImagesPath = imagesPath;
         }
         System.out.print("imagesPath============="+mImagesPath+"\n");
         //LoggerFactory.getLogger(WebAppConfig.class).info("imagesPath============="+mImagesPath+"\n");
-        registry.addResourceHandler("/images/**").addResourceLocations("file:"+mImagesPath);
+        registry.addResourceHandler("/res/**").addResourceLocations("file:"+mImagesPath);
         // TODO Auto-generated method stub
         System.out.print("上传配置mImagesPath=="+mImagesPath+"\n");
         //跨域

@@ -20,17 +20,12 @@ public class SessionDto {
     private String id;
     private String name;
     private String label;
-
     @Nullable
     private List<FileDto> fileList;
-
     @Nullable
     private String[] date;
     @Nullable
     private List<SessionDto> children;
-
-    // 2023-03-08T16:00:00.000Z转成Timestamp
-
     public Timestamp getStartTime() {
         Timestamp timestamp = changeTime(date[0]);
         return timestamp;

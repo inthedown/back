@@ -30,8 +30,5 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
             return query.where(predicates.toArray(new Predicate[predicates.size()])).getRestriction();
         }, pageable);
     }
-    @Modifying
-    @Transactional
-    @Query(value = "delete from User u where u.id in ?1")
-    void deleteByIdIn(Collection<Integer> id);
+
 }
