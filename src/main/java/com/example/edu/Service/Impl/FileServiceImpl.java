@@ -53,8 +53,8 @@ public class FileServiceImpl implements FileService {
                 String fileName = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + "_" + name;
                 System.out.print("文件名 "+fileName+"\n");
                 //加个时间戳，尽量避免文件名称重复
-                String path = "/Users/no1/final/res/" +fileName;//mac路径
-//                String path = "E:/res/" +fileName;//windows路径
+               // String path = "/Users/no1/final/res/" +fileName;//mac路径
+                String path = "E:/res/" +fileName;//windows路径
                 //文件绝对路径
                 System.out.print("绝对路径"+path+"\n");
                 //创建文件路径

@@ -37,4 +37,6 @@ public interface CommentRepository extends JpaRepository<Comment, Integer>, JpaS
             "from Comment c where c.userTo.id=?1 order by c.time desc")
     List<Map<String, Object>> findBackById(Integer id);
 
+    @Query("select count(c) from Comment c where c.userTo.id=?1 or c.userFrom.id=?1")
+    Integer findNumByTeaId(Integer id);
 }

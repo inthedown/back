@@ -2,6 +2,7 @@ package com.example.edu.Service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.edu.Entity.*;
+import com.example.edu.Form.NumMapDto;
 import com.example.edu.Repository.*;
 import com.example.edu.Service.VisualService;
 import com.example.edu.result.ExceptionMsg;
@@ -35,6 +36,8 @@ public class VisualServiceImpl implements VisualService {
     private CourseRepository courseRepository;
     @Autowired
     private UserLoginLogRepository userLoginLogRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     /**
      * @param user
@@ -108,18 +111,15 @@ public class VisualServiceImpl implements VisualService {
 
     }
 
-    private List<Map<String, Object>> getTeaMsg(User user) {
-        List<Map<String, Object>> map = new ArrayList<>();
+    private NumMapDto getTeaMsg(User user) {
+       NumMapDto numMapDto=new NumMapDto();
         Integer studentNum = stuRepository.findStuNumByTeaId(user.getId());
-        map.add(Map.of("studentNum", studentNum));
-        List<Course> courseList = courseRepository.findAllByUserId(user.getId());
-        map.add(Map.of("courseNum", courseList.size()));
-        courseList.forEach(course -> {
-            course.getSessions().forEach(session -> {
-                map.add(Map.of("files", getFiles(session)));
-            });
-        });
-        return map;
+        numMapDto.setStudentNum(studentNum);
+        Integer courseNum = courseRepository.findCourseByTeacherId(user.getId()).size();
+         numMapDto.setCourseNum(courseNum);
+        Integer feedbackNum = commentRepository.findNumByTeaId(user.getId());
+        numMapDto.setFeedbackNum(feedbackNum);
+        return numMapDto;
     }
 
     public List<File> getFiles(Session session) {
@@ -135,12 +135,27 @@ public class VisualServiceImpl implements VisualService {
         return files;
     }
 
-    private List<Map<String, Object>> getStuMsg(User user) {
-        return null;
+    private NumMapDto getStuMsg(User user) {
+        NumMapDto numMapDto=new NumMapDto();
+        Integer studentNum = stuRepository.findStuNumByTeaId(user.getId());
+        numMapDto.setStudentNum(studentNum);
+        Integer courseNum = courseRepository.findCourseByStudentId(user.getId()).size();
+        numMapDto.setCourseNum(courseNum);
+        Integer feedbackNum = commentRepository.findNumByTeaId(user.getId());
+        numMapDto.setFeedbackNum(feedbackNum);
+        return numMapDto;
+
     }
 
-    public List<Map<String, Object>> getAdminMsg() {
-        return null;
+    public NumMapDto getAdminMsg() {
+        Integer courseNum=courseRepository.findAll().size();
+        Integer feedBackNum=commentRepository.findAll().size();
+        Integer studentNum=stuRepository.findAll().size();
+        NumMapDto numMapDto=new NumMapDto();
+        numMapDto.setFeedbackNum(feedBackNum);
+        numMapDto.setCourseNum(courseNum);
+        numMapDto.setStudentNum(studentNum);
+        return numMapDto;
     }
 
     /**
@@ -201,12 +216,65 @@ public class VisualServiceImpl implements VisualService {
      * @param user
      * @return
      */
+//    @Override
+//    public ResponseData getDonutMap(Integer courseId, User user) {
+//        if(user.getRoleId() == 2) {
+//            return new ResponseData(ExceptionMsg.SUCCESS);
+//        }
+//        if(courseId == null){
+//            if(user.getRoleId() == 1){
+//                List<Integer> ids = courseRepository.findAll().stream().map(Course::getId).toList();
+//                //随机取一个id
+//                int id = ids.get(new Random().nextInt(ids.size()));
+//                return getDonutMap(id, user);
+//            }else{
+//                List<Integer> ids = courseRepository.findCourseByTeacherId(user.getId()).stream().map(Course::getId).toList();
+//                //随机取一个id
+//                int id = ids.get(new Random().nextInt(ids.size()));
+//                return getDonutMap(id, user);
+//            }
+//        }
+//        //获取课程的所有节点
+//        Course course=Optional.ofNullable( courseRepository.findById(courseId)).get().orElseThrow(()->new ServiceException("课程不存在"));
+//        List<Session> sessions = course.getSessions();
+//        List<Map<String,Object>> nodes = new ArrayList<>();
+//        List<Map<String,Object>> edges = new ArrayList<>();
+//        List<Integer> studentIds=stuRepository.findStuByCourseId(course.getId()).stream().map(Student::getId).toList();
+//        for (Session session : sessions) {
+//            Map<String,Object> node = new HashMap<>();
+//            node.put("id",session.getId());
+//            node.put("label",session.getSessionName());
+//            DonutAttrs donutAttrs = getState(session.getId(),studentIds);
+//            node.put("donutAttrs",donutAttrs);
+//            nodes.add(node);
+//            if(session.getChildSessions()!=null){
+//                for (Session session1:session.getChildSessions()){
+//                    Map<String,Object> node1 = new HashMap<>();
+//                    node1.put("id",session1.getId());
+//                    node1.put("label",session1.getSessionName());
+//                    DonutAttrs donutAttrs1 = getState(session1.getId(),studentIds);
+//                    node1.put("donutAttrs",donutAttrs1);
+//                    nodes.add(node1);
+//                    Map<String,Object> edge = new HashMap<>();
+//                    edge.put("source",session.getId());
+//                    edge.put("target",session1.getId());
+//                    edge.put("size",donutAttrs.outcome-donutAttrs1.outcome);
+//                    edges.add(edge);
+//                }
+//            }
+//        }
+//        JSONObject json = new JSONObject();
+//        json.put("nodes",nodes);
+//        json.put("edges",edges);
+//
+//        return new ResponseData(ExceptionMsg.SUCCESS,json);
+//    }
     @Override
-    public ResponseData getDonutMap(int courseId, User user) {
+    public ResponseData getDonutMap(Integer courseId, User user) {
         if(user.getRoleId() == 2) {
-            return null;
+            return new ResponseData(ExceptionMsg.SUCCESS);
         }
-        if(Integer.valueOf(courseId).equals(null)){
+        if(courseId == null){
             if(user.getRoleId() == 1){
                 List<Integer> ids = courseRepository.findAll().stream().map(Course::getId).toList();
                 //随机取一个id
@@ -225,28 +293,9 @@ public class VisualServiceImpl implements VisualService {
         List<Map<String,Object>> nodes = new ArrayList<>();
         List<Map<String,Object>> edges = new ArrayList<>();
         List<Integer> studentIds=stuRepository.findStuByCourseId(course.getId()).stream().map(Student::getId).toList();
+        log.info("studentIds:{}",studentIds);
         for (Session session : sessions) {
-            Map<String,Object> node = new HashMap<>();
-            node.put("id",session.getId());
-            node.put("label",session.getSessionName());
-            DonutAttrs donutAttrs = getState(session.getId(),studentIds);
-            node.put("donutAttrs",donutAttrs);
-            nodes.add(node);
-            if(session.getChildSessions()!=null){
-                for (Session session1:session.getChildSessions()){
-                    Map<String,Object> node1 = new HashMap<>();
-                    node1.put("id",session1.getId());
-                    node1.put("label",session1.getSessionName());
-                    DonutAttrs donutAttrs1 = getState(session1.getId(),studentIds);
-                    node1.put("donutAttrs",donutAttrs1);
-                    nodes.add(node1);
-                    Map<String,Object> edge = new HashMap<>();
-                    edge.put("source",session.getId());
-                    edge.put("target",session1.getId());
-                    edge.put("size",donutAttrs.outcome-donutAttrs1.outcome);
-                    edges.add(edge);
-                }
-            }
+            traverseSession(session, nodes, edges, studentIds);
         }
         JSONObject json = new JSONObject();
         json.put("nodes",nodes);
@@ -254,22 +303,63 @@ public class VisualServiceImpl implements VisualService {
 
         return new ResponseData(ExceptionMsg.SUCCESS,json);
     }
+    private void traverseSession(Session session, List<Map<String,Object>> nodes, List<Map<String,Object>> edges, List<Integer> studentIds) {
+        Map<String,Object> node = new HashMap<>();
+        node.put("id",String.valueOf( session.getId()));
+        node.put("label",session.getSessionName());
+        DonutAttrs donutAttrs = getState(session.getId(),studentIds);
+        node.put("donutAttrs",donutAttrs);
+        if(session.getParentSession()==null){
+            nodes.add(node);
+        }
+        if(session.getChildSessions()!=null){
+            for (Session childSession : session.getChildSessions()){
+                Map<String,Object> childNode = new HashMap<>();
+                childNode.put("id",String.valueOf( childSession.getId()));
+                childNode.put("label",childSession.getSessionName());
+                DonutAttrs childDonutAttrs = getState(childSession.getId(),studentIds);
+                childNode.put("donutAttrs",childDonutAttrs);
+                nodes.add(childNode);
+                Map<String,Object> edge = new HashMap<>();
+                edge.put("source",String.valueOf( session.getId()));
+                edge.put("target" ,String.valueOf( childSession.getId()));
+                Integer size = donutAttrs.outcome+donutAttrs.income+donutAttrs.unknown-childDonutAttrs.income-childDonutAttrs.outcome;
+
+                edge.put("size",size>0?size:0);
+                edges.add(edge);
+                traverseSession(childSession, nodes, edges, studentIds);
+            }
+        }
+    }
+
+
 
     private DonutAttrs getState(int sessionId, List<Integer> studentIds) {
         DonutAttrs donutAttrs = new DonutAttrs();
         Session session = Optional.ofNullable(sessionRepository.findById(sessionId)).get().orElseThrow(()->new ServiceException("session不存在"));
         List<File> files = session.getFiles();
-        for (File file : files) {
-            for (ResourceLog resourceLog : file.getResourceLogs()) {
-                if (studentIds.contains(resourceLog.getUser().getId())) {
-                    //学生id包含在内
-                    if (resourceLog.getStatus().equals("已完成")) {
+        if(files==null||files.size()==0){
+            donutAttrs.outcome=studentIds.size();
+            return donutAttrs;
+        }
+        List<ResourceLog> logs=new ArrayList<>();
+        files.forEach(file -> {
+            logs.addAll(file.getResourceLogs());
+        });
+        if(logs.size()==0){
+            donutAttrs.unknown=studentIds.size();
+            return donutAttrs;
+        }
+        for (ResourceLog log : logs) {
+            for (Integer studentId : studentIds) {
+                if(log.getUser().getId().equals(studentId)){
+                    if (log.getStatus().equals("已完成")) {
                         donutAttrs.outcome++;
-                    }else if(resourceLog.getStatus().equals("未完成")){
-                        donutAttrs.unknown++;
                     }else{
                         donutAttrs.income++;
                     }
+                }else {
+                    donutAttrs.unknown++;
                 }
             }
         }

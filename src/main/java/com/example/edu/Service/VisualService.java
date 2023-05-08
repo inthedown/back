@@ -10,5 +10,5 @@ public interface VisualService {
 
     ResponseData getMap(User user);
 
-    ResponseData getDonutMap(int courseId, User user);
+    ResponseData getDonutMap(Integer courseId, User user);
 }

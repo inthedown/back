@@ -82,7 +82,11 @@ public class CourseServiceImpl implements CourseService {
             Page<CourseFrontDto> page = new PageImpl<>(pageList, PageRequest.of(userInfoDto.getCurrent() - 1, userInfoDto.getSize()), total);
             return new ResponseData(ExceptionMsg.SUCCESS, page);
         }else{
+
             List<CourseFrontDto> pageList = courseFrontDtos.subList(start, end);
+            if(total==0){
+                return new ResponseData(ExceptionMsg.SUCCESS, pageList);
+            }
             Page<CourseFrontDto> page = new PageImpl<>(pageList, PageRequest.of(0, total), total);
             return new ResponseData(ExceptionMsg.SUCCESS, page);
         }
@@ -140,11 +144,11 @@ public class CourseServiceImpl implements CourseService {
             String[] scoreMsgs=scoreMsg.split("_");
             String status=scoreMsgs[0];
             String score=scoreMsgs[1];
-
-            courseDetailForm.setRate(Float.parseFloat(score)/100);
+            log.info(" scoreMsg:"+ scoreMsg);
+            courseDetailForm.setRate(Float.parseFloat(score));
             courseDetailForm.setStatus(Util.getStatus(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
             courseDetailForm.setVariableName(status);
-            courseDetailForm.setVariableValue(Float.parseFloat(score)/100);
+            courseDetailForm.setVariableValue(Float.parseFloat(score));
             courseDetailForm.setVariableUp("variableUp");
             if(sessions.get(i-1).getChildSessions()!=null){
                 if(j==null){
@@ -163,17 +167,17 @@ public class CourseServiceImpl implements CourseService {
     public String   getVariableName(int sessionId,  User user) {
 
         if(user.getRoleId()!=2){
-            return "已完成_100";
+            return "已完成_1";
         }
         int studentId = user.getId();
         Session session =sessionRepository.getReferenceById(sessionId);
         List<Integer> fileIds = session.getFiles().stream().map(File::getId).collect(Collectors.toList());
         if(fileIds.size()==0){
-            return "已完成_100";
+            return "已完成_1";
         }
         List<ResourceLog> resourceLogs = resourceLogRepository.findResourceLogByFileIdInAndStudentId(fileIds, studentId);
         //遍历fileIds,找到对应的resourceLog,若没有则进度为0
-        int count = 0;
+        float count = 0;
         for (Integer fileId : fileIds) {
             for (ResourceLog resourceLog : resourceLogs) {
                 if (resourceLog.getFile().getId() == fileId) {
@@ -182,8 +186,8 @@ public class CourseServiceImpl implements CourseService {
             }
         }
         count=count/fileIds.size();
-        if(count>=100){
-            return "已完成_100";
+        if(count>=1){
+            return "已完成_1";
         }else if(count>0){
             return "进行中_"+count;
         }else{
