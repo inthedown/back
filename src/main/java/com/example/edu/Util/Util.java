@@ -1,5 +1,6 @@
 package com.example.edu.Util;
 
+import com.example.edu.Entity.Course;
 import com.example.edu.Entity.Session;
 import org.hibernate.Hibernate;
 
@@ -112,5 +113,12 @@ public  class Util {
     }
     public static String formatDate(Timestamp timestamp){
         return new SimpleDateFormat("MM-dd").format(timestamp);
+    }
+
+    public static Course getCourseBySession(Session session){
+        while (session.getParentSession()!=null){
+            session=session.getParentSession();
+        }
+        return session.getCourse();
     }
 }

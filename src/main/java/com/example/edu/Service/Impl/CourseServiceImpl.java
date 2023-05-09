@@ -144,7 +144,7 @@ public class CourseServiceImpl implements CourseService {
             String[] scoreMsgs=scoreMsg.split("_");
             String status=scoreMsgs[0];
             String score=scoreMsgs[1];
-            log.info(" scoreMsg:"+ scoreMsg);
+//            log.info(" scoreMsg:"+ scoreMsg);
             courseDetailForm.setRate(Float.parseFloat(score));
             courseDetailForm.setStatus(Util.getStatus(sessions.get(i - 1).getStartTime(), sessions.get(i - 1).getEndTime()));
             courseDetailForm.setVariableName(status);
@@ -297,6 +297,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseData update(CourseDto courseDto) {
+
         return null;
     }
 

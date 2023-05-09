@@ -17,6 +17,6 @@ public class FileDto {
 
     private String name;
     private int percentage;
-    private int size;
+    private String size;
     private String uid;
 }

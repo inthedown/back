@@ -1,6 +1,8 @@
 package com.example.edu.Repository;
 
 import com.example.edu.Entity.Comment;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -33,10 +35,16 @@ public interface CommentRepository extends JpaRepository<Comment, Integer>, JpaS
 
     @Query("select c.id as id ,c.userTo.id as userToId," +
             "c.userTo.userName as userToName,c.time as time,c.userFrom.id as userFromId," +
-            "c.userFrom.userName as userFromName,c.session.id as sessionId ,c.content as content " +
-            "from Comment c where c.userTo.id=?1 order by c.time desc")
-    List<Map<String, Object>> findBackById(Integer id);
+            "c.userFrom.userName as userFromName,c.session.id as sessionId ,c.session.sessionName as sessionName,c.content as content   " +
+            "from Comment c where c.userTo.id=?1 order by c.time desc ")
+    List<Map<String, Object>> findBackById(Integer id, Pageable pageable);
 
     @Query("select count(c) from Comment c where c.userTo.id=?1 or c.userFrom.id=?1")
     Integer findNumByTeaId(Integer id);
+
+    @Query("select c.id as id ,c.userTo.id as userToId," +
+            "c.userTo.userName as userToName,c.time as time,c.userFrom.id as userFromId," +
+            "c.userFrom.userName as userFromName,c.session.id as sessionId ,c.session.sessionName as sessionName,c.content as content   " +
+            "from Comment c  order by c.time desc ")
+    List<Map<String, Object>> findAllMsg(PageRequest pageRequest);
 }

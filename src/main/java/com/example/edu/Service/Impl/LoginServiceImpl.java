@@ -284,6 +284,7 @@ public class LoginServiceImpl implements LoginService {
         JSONArray stuChildren=new JSONArray();
         JSONObject stuInfoMenu=new JSONObject(Map.of("name","course"));
         JSONObject stuScoreMenu=new JSONObject(Map.of("name","courseDetail"));
+
         stuChildren.add(stuInfoMenu);
         stuChildren.add(stuScoreMenu);
         stuMenu.put("children",stuChildren);
@@ -294,9 +295,11 @@ public class LoginServiceImpl implements LoginService {
         JSONObject teaInfoMenu=new JSONObject(Map.of("name","course"));
         JSONObject teaCMenu=new JSONObject(Map.of("name","courseAdd"));
         JSONObject teaDetailMenu=new JSONObject(Map.of("name","courseDetail"));
+        JSONObject mapMenu=new JSONObject(Map.of("name","courseDraw"));
         teaChildren.add(teaInfoMenu);
         teaChildren.add(teaCMenu);
         teaChildren.add(teaDetailMenu);
+        teaChildren.add(mapMenu);
         teaMenu.put("children",teaChildren);
 
         switch (roleId) {

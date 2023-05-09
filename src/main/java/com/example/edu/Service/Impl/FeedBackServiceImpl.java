@@ -1,6 +1,7 @@
 package com.example.edu.Service.Impl;
 
 import com.example.edu.Entity.Comment;
+import com.example.edu.Entity.Course;
 import com.example.edu.Entity.User;
 import com.example.edu.Form.AddFeedBackDto;
 import com.example.edu.Form.GetFeedBackDto;
@@ -8,17 +9,19 @@ import com.example.edu.Repository.CommentRepository;
 import com.example.edu.Repository.SessionRepository;
 import com.example.edu.Repository.UserRepository;
 import com.example.edu.Service.FeedBackService;
+import com.example.edu.Util.Util;
 import com.example.edu.result.ExceptionMsg;
 import com.example.edu.result.ResponseData;
 import com.example.edu.result.ServiceException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
 @Service
 @Slf4j
 public class FeedBackServiceImpl implements FeedBackService {
@@ -64,15 +67,29 @@ public class FeedBackServiceImpl implements FeedBackService {
         return new ResponseData(ExceptionMsg.SUCCESS,"添加成功");
     }
 
+    @SneakyThrows
     @Override
     public ResponseData getBackMsg(User user) {
+
+        PageRequest pageRequest = PageRequest.of(0, 50);
+        List<Map<String,Object>> comments=new ArrayList<>();
         if(user.getRoleId()==1){
-            return new ResponseData(ExceptionMsg.SUCCESS);
+            comments=commentRepository.findAllMsg(pageRequest);
+
         }else if(user.getRoleId()==2||user.getRoleId()==3){
-            List<Map<String,Object>> comments=commentRepository.findBackById(user.getId());
-            return new ResponseData(ExceptionMsg.SUCCESS,comments);
+            comments=commentRepository.findBackById(user.getId(),pageRequest);
         }
 
-        return new ResponseData(ExceptionMsg.SUCCESS,null);
+        for (Map<String,Object> comment:comments){
+            Integer sessionId=comment.get("sessionId")==null?null:Integer.parseInt(comment.get("sessionId").toString());
+            Course course=Util.getCourseBySession(sessionRepository.getReferenceById( sessionId));
+            Map<String, Object> mutableComment = new HashMap<>(comment);
+            mutableComment.put("courseName", course.getCourseName());
+            mutableComment.put("courseId", course.getId());
+            // 用修改后的 Map 对象替换原始的 TupleBackedMap
+            comments.set(comments.indexOf(comment), mutableComment);
+        }
+
+        return new ResponseData(ExceptionMsg.SUCCESS,comments);
     }
 }
